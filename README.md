@@ -146,10 +146,44 @@ build. Highlights now in the codebase:
 - **Google Consent Mode v2 gate** on landing pages — deny-by-default, consent
   banner, and `ad_user_data` / `ad_personalization` signals, per EEA rules.
 
+## Live Meta integration (real, gated, no auto-spend)
+
+`channels/meta.ts` + `channels/meta-client.ts` implement the real Meta Marketing
+API path (Campaign → Ad Set → Ad Creative → Ad) against the official Graph API.
+It activates **only** when all of the following hold:
+
+1. a human approved the run (`humanApproved: true`), **and**
+2. a System User token + ad-account id + page id are provided.
+
+Even then, every object is created **PAUSED** — standing up a campaign spends
+nothing; turning it on is a separate, deliberate action in Ads Manager. The HTTP
+`/api/run` endpoint never authorises live publishing; you must call the engine
+programmatically and pass the approval + credentials:
+
+```ts
+import { runGrowthLoop } from "@/lib/engine";
+
+await runGrowthLoop(brief, {
+  humanApproved: true,
+  credentials: { meta_ads: process.env.META_ADS_ACCESS_TOKEN! },
+  accounts: { meta_ads: { accountId: process.env.META_ADS_AD_ACCOUNT_ID!, pageId: process.env.META_ADS_PAGE_ID!, countries: ["PL"] } },
+});
+```
+
+The client takes an injectable `fetch`, so the whole flow is unit-tested
+(`tests/meta.test.ts`) with no network and no spend.
+
+## Persistence
+
+`/api/run` persists each run (brief, campaigns, final metrics) to Postgres when
+`DATABASE_URL` is set, via `src/lib/persistence.ts` — **best-effort and
+non-blocking**: with no database it returns a clear no-op and still hands back
+the full run. `npm run seed` writes a demo brief + run. Schema in
+`prisma/schema.prisma`.
+
 ## Roadmap
 
-- Wire concrete official-API clients into the channel adapters (`publishLive`)
-  against the specs in `channels/api-specs.ts` — start with Meta.
-- Persist every loop iteration and optimise against real historical data.
+- Extend `publishLive` to Google Ads / TikTok / LinkedIn against `api-specs.ts`.
+- Optimise against persisted historical metrics across periods.
 - Swap the demo consent banner for a certified CMP.
 - Multi-model AI roles (separate strategy/copy/creative/QA models).

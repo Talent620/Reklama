@@ -10,15 +10,26 @@ import { getAdapter } from "./channels/registry";
 import type { AdapterContext, PublishResult } from "./channels/adapter";
 import type { Brief, CreativeVariant, LandingPage, Strategy } from "./types";
 
+export interface ChannelAccount {
+  accountId?: string;
+  pageId?: string;
+  countries?: string[];
+  apiVersion?: string;
+}
+
 export interface PublishOptions {
   baseUrl: string;
-  /** Per-channel credentials keyed by channel id. */
+  /** Per-channel credentials (access tokens) keyed by channel id. */
   credentials?: Partial<Record<string, string>>;
+  /** Per-channel account config (ad account id, page id, …) keyed by channel id. */
+  accounts?: Partial<Record<string, ChannelAccount>>;
   humanApproved: boolean;
   /** Hard ceiling per channel/day — never exceeded autonomously. */
   maxDailyBudget: number;
   /** Desired status; downgraded to DRAFT when not allowed to go live. */
   desiredStatus?: "DRAFT" | "PAUSED" | "LIVE";
+  /** Injectable fetch for the adapters (tests / custom transport). */
+  fetchImpl?: typeof fetch;
 }
 
 export interface PublishPlanResult {
@@ -54,10 +65,16 @@ export async function publishCampaigns(
     }
 
     const adapter = getAdapter(alloc.channel);
+    const account = opts.accounts?.[alloc.channel];
     const ctx: AdapterContext = {
       credential: opts.credentials?.[alloc.channel],
+      accountId: account?.accountId,
+      pageId: account?.pageId,
+      countries: account?.countries,
+      apiVersion: account?.apiVersion,
       humanApproved: opts.humanApproved,
       baseUrl: opts.baseUrl,
+      fetchImpl: opts.fetchImpl,
     };
 
     const result = await adapter.publish(

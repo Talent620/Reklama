@@ -34,12 +34,22 @@ export interface PublishResult {
 }
 
 export interface AdapterContext {
-  /** Resolved credential for this channel, if any. */
+  /** Resolved credential (access token) for this channel, if any. */
   credential?: string;
+  /** Platform ad-account identifier (e.g. Meta act_{id}, Google customer id). */
+  accountId?: string;
+  /** Meta Page id used to build ad creatives (object_story_spec). */
+  pageId?: string;
+  /** Two-letter country codes to target. */
+  countries?: string[];
+  /** API version override (e.g. Meta "v23.0"). */
+  apiVersion?: string;
   /** Whether a human approved going live for this run. */
   humanApproved: boolean;
   /** Base URL where landing pages are hosted. */
   baseUrl: string;
+  /** Injectable fetch — lets adapters be unit-tested without real network I/O. */
+  fetchImpl?: typeof fetch;
 }
 
 export interface ChannelAdapter {

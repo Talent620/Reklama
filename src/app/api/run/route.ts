@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { runGrowthLoop } from "@/lib/engine";
+import { persistRun } from "@/lib/persistence";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,10 @@ export async function POST(req: Request) {
       seed: typeof (config as any)?.seed === "string" ? (config as any).seed : "api",
     });
 
-    return NextResponse.json(result);
+    // Best-effort persistence — never blocks returning the run.
+    const persistence = await persistRun(result);
+
+    return NextResponse.json({ ...result, persistence });
   } catch (err) {
     if (err instanceof ZodError) {
       return NextResponse.json({ error: "Invalid brief", issues: err.issues }, { status: 422 });

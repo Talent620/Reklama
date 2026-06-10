@@ -16,3 +16,6 @@ export { thompsonAllocate, betaSample } from "./bandit";
 export type { BanditArm, BanditAllocation, BanditOptions } from "./bandit";
 export { CHANNEL_API_SPECS, getApiSpec } from "./channels/api-specs";
 export type { ChannelApiSpec } from "./channels/api-specs";
+export { MetaMarketingClient, MetaApiError, metaObjective, metaOptimizationGoal, metaCtaType } from "./channels/meta-client";
+export { MetaAdsAdapter } from "./channels/meta";
+export type { ChannelAccount } from "./publish";

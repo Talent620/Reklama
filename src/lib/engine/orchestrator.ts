@@ -26,7 +26,7 @@ import { analyzeBrief } from "./analysis";
 import { buildStrategy } from "./strategy";
 import { generateCreatives } from "./creative";
 import { generateLandingPage } from "./landing";
-import { publishCampaigns, type PublishPlanResult } from "./publish";
+import { publishCampaigns, type ChannelAccount, type PublishPlanResult } from "./publish";
 import { derive, mergeSnapshots, simulatePeriod } from "./monitoring";
 import { optimize } from "./optimization";
 import { buildReport } from "./reporting";
@@ -38,6 +38,10 @@ export interface RunConfig {
   maxDailyBudget?: number;
   humanApproved?: boolean;
   credentials?: Partial<Record<string, string>>;
+  /** Per-channel account config (Meta ad account/page id, target countries…). */
+  accounts?: Partial<Record<string, ChannelAccount>>;
+  /** Injectable fetch passed to channel adapters (tests / custom transport). */
+  fetchImpl?: typeof fetch;
   /** Number of measure→optimize iterations to run. */
   iterations?: number;
   /** Seed for the deterministic simulator. */
@@ -88,6 +92,8 @@ export async function runGrowthLoop(input: unknown, config: RunConfig = {}): Pro
   const publish = await publishCampaigns(brief, strategy, creatives, landingPages, {
     baseUrl: cfg.baseUrl,
     credentials: cfg.credentials,
+    accounts: cfg.accounts,
+    fetchImpl: cfg.fetchImpl,
     humanApproved: cfg.humanApproved,
     maxDailyBudget: cfg.maxDailyBudget,
     desiredStatus: cfg.humanApproved ? "LIVE" : "DRAFT",

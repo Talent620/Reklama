@@ -6,6 +6,7 @@
  * refuses to fake spend), so the whole pipeline is safe to run anywhere.
  */
 import { BaseAdapter } from "./base";
+import { MetaAdsAdapter } from "./meta";
 import type { ChannelAdapter, PublishRequest } from "./adapter";
 import type { ChannelId } from "../types";
 
@@ -16,18 +17,6 @@ class GoogleAdsAdapter extends BaseAdapter {
     const w = super.validate(req);
     for (const c of req.creatives) {
       if (c.headline.length > 30) w.push(`Google headline > 30 chars: "${c.headline}"`);
-    }
-    return w;
-  }
-}
-
-class MetaAdsAdapter extends BaseAdapter {
-  readonly channel = "meta_ads" as const;
-  protected readonly credentialEnv = "META_ADS_ACCESS_TOKEN";
-  validate(req: PublishRequest): string[] {
-    const w = super.validate(req);
-    for (const c of req.creatives) {
-      if (c.primaryText.length > 125) w.push(`Meta primary text long (>125): truncation likely for "${c.id}".`);
     }
     return w;
   }
