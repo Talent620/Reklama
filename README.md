@@ -1,5 +1,13 @@
 # Reklama — Autonomous Growth Engine
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Talent620/Reklama/tree/claude/autonomous-growth-engine-aki9mu)
+
+> **Get a live link in ~2 minutes:** click the button above (no env vars
+> required — the engine falls back to its deterministic AI provider and all
+> publishing is dry-run). Or run it locally with the Quick start below.
+> Live routes once deployed: `/` (dashboard), `/lp/brewly-cold-brew-kit-a`
+> (a generated landing page), `/api/health`.
+
 An autonomous performance-marketing system. You give it a business brief; it
 runs the full growth loop on its own:
 
@@ -74,8 +82,13 @@ The AI seam (`src/lib/ai/provider.ts`) swaps between a deterministic
 
 ### App layer
 
-- `src/app/page.tsx` — dashboard: submit a brief, see the full run.
+- `src/app/(app)/page.tsx` — dashboard: submit a brief, see the full run.
+- `src/app/lp/[slug]/page.tsx` — **live, generated landing pages** rendered
+  from the `LandingPage` spec (hero/benefits/proof/FAQ/form/CTA), pre-rendered
+  at build time, with consent-gated analytics. Demo slugs:
+  `brewly-cold-brew-kit-a`, `brewly-cold-brew-kit-b`, `pipelineiq-a`, `pipelineiq-b`.
 - `src/app/api/run` — runs the loop (always dry-run from HTTP).
+- `src/app/api/track` — analytics event sink for landing pages.
 - `src/app/api/health` — liveness + capability probe.
 
 ---
