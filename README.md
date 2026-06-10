@@ -4,26 +4,31 @@ Narzędzie, które **dla najmocniejszego modelu flagowego** (Claude Opus 4.8):
 
 1. **analizuje rynek Google Play** i znajduje nisze, na których realnie da się zarobić,
 2. **generuje gotowy do wklejenia prompt** „zbuduj całą aplikację" na najwyższym poziomie,
-3. **automatycznie publikuje** gotowy plik aplikacji (AAB) do Google Play.
+3. **opcjonalnie sam buduje kod aplikacji** z tego promptu (kompletny projekt Flutter na dysku),
+4. **automatycznie publikuje** gotowy plik aplikacji (AAB) do Google Play.
 
 Pętla docelowa:
 
 ```
-reklama pipeline "fitness"   →  out/prompt-*.txt
+reklama pipeline "fitness" --build   →  out/prompt-*.txt  +  out/app-<nazwa>/ (kod projektu)
         │
-        ▼  (wklejasz prompt do agenta kodującego, np. Claude Code)
-   gotowa aplikacja  →  build do podpisanego .aab
+        ▼  (flutter build appbundle wg out/app-<nazwa>/BUILD.md)
+   podpisany .aab
         │
         ▼
 reklama publish --package com.firma.app --aab app.aab --track internal
 ```
 
-> **Szczerze o automatyzacji.** Etapy 1–2 (analiza + prompt) są w pełni automatyczne.
-> Etap „wklej i odbierz aplikację" wykonuje agent kodujący, do którego wklejasz prompt —
-> to celowy, kontrolowany krok (sprawdzasz i budujesz kod). Etap 3 (upload do Google Play)
-> jest automatyczny, ale wymaga jednorazowej konfiguracji konta dewelopera i konta serwisowego,
-> a pierwsza wersja produkcyjna zwykle przechodzi ręczną weryfikację Google. Te ograniczenia
-> wynikają z polityk Google, nie z narzędzia.
+Bez `--build` dostajesz same prompty — wklejasz je do dowolnego agenta kodującego
+(np. Claude Code) i odbierasz aplikację tam.
+
+> **Szczerze o automatyzacji.** Etapy 1–3 (analiza → prompt → kod) są w pełni automatyczne
+> z flagą `--build`. Dwa kroki pozostają po Twojej stronie: kompilacja i **podpisanie** AAB
+> (`flutter build appbundle` — klucz podpisujący musi być Twój i lokalny) oraz jednorazowa
+> konfiguracja konta Google Play Developer + konta serwisowego; pierwsza wersja produkcyjna
+> zwykle przechodzi ręczną weryfikację Google. Te ograniczenia wynikają z wymogów
+> bezpieczeństwa i polityk Google, nie z narzędzia. Wygenerowany kod zawsze przejrzyj
+> przed publikacją.
 
 ---
 
@@ -46,6 +51,12 @@ reklama prompt "produktywność"
 
 # 3. Pełny przebieg: analiza + prompty dla top 3 nisz
 reklama pipeline "zdrowie i fitness" --top 3
+
+# 3b. Jak wyżej + auto-budowa kodu najlepszej aplikacji
+reklama pipeline "zdrowie i fitness" --build
+
+# 3c. Auto-budowa z wcześniej zapisanego promptu
+reklama build --prompt out/prompt-moja-apka.json
 
 # 4. Publikacja gotowego AAB
 reklama publish --package com.firma.app --aab ./app-release.aab \
@@ -90,6 +101,7 @@ Wskazówki:
 reklama/
 ├── analyzer.py          # Etap 1: web search + structured output → raport nisz
 ├── prompt_generator.py  # Etap 2: gotowy do wklejenia prompt budujący aplikację
+├── builder.py           # Etap 2.5: auto-budowa kodu aplikacji z promptu (opcjonalna)
 ├── publisher.py         # Etap 3: upload AAB do Google Play (androidpublisher v3)
 ├── pipeline / cli.py    # orkiestracja i interfejs CLI
 ├── _llm.py              # warstwa nad Anthropic SDK (model flagowy)

@@ -4,6 +4,8 @@ Komendy:
     reklama analyze   "fitness"          # znajdź dochodowe nisze
     reklama prompt    "fitness"          # nisze + gotowy prompt dla najlepszej
     reklama pipeline  "fitness"          # pełny przebieg: analiza -> prompt(y)
+    reklama pipeline  "fitness" --build  # j.w. + auto-budowa kodu najlepszej aplikacji
+    reklama build     --prompt out/prompt-x.json   # zbuduj kod z zapisanego promptu
     reklama publish   --package ... --aab app.aab --track internal
 """
 
@@ -78,18 +80,78 @@ def cmd_pipeline(args: argparse.Namespace) -> int:
 
     top = report.okazje[: args.top]
     console.print(f"\n[bold]Generuję prompty dla {len(top)} najlepszych nisz...[/bold]")
+    best_generated = None
     for o in top:
         with console.status(f"[cyan]Prompt: {o.nazwa}..."):
             generated = prompt_generator.generate_prompt(settings, o)
+        if best_generated is None:
+            best_generated = generated
         txt_path, _ = storage.save_prompt(generated, args.out)
         console.print(f"  [green]✓[/green] {o.nazwa} -> {txt_path}")
 
+    if args.build and best_generated is not None:
+        app_dir = _run_build(settings, best_generated, args.out)
+        next_step = (
+            f"Kod najlepszej aplikacji jest w [bold]{app_dir}[/bold] — "
+            "zbuduj AAB wg BUILD.md i opublikuj komendą [bold]reklama publish[/bold]."
+        )
+    else:
+        next_step = (
+            f"Otwórz pliki [bold]prompt-*.txt[/bold] w katalogu '{args.out}', "
+            "wklej do agenta kodującego (lub użyj [bold]reklama build[/bold]), "
+            "a potem opublikuj komendą [bold]reklama publish[/bold]."
+        )
+
+    console.print(Panel.fit(f"Gotowe. {next_step}", border_style="cyan"))
+    return 0
+
+
+def _run_build(settings, generated, out_root: str) -> str:
+    """Wspólna obsługa auto-budowy: model generuje projekt i zapisuje pliki."""
+    from . import builder
+
+    app_dir = f"{out_root}/app-{generated.okazja.slug}"
+    console.print(f"\n[bold]Auto-budowa aplikacji:[/bold] {generated.nazwa_aplikacji} -> {app_dir}")
+    with console.status("[cyan]Model generuje projekt...") as status:
+        result = builder.build_app(
+            settings, generated, app_dir,
+            on_progress=lambda msg: status.update(f"[cyan]{msg}"),
+        )
+    console.print(f"  [green]✓[/green] Zapisano {len(result.files)} plików")
+    if result.truncated:
+        console.print(
+            "  [yellow]⚠ Wyjście mogło zostać ucięte mimo kontynuacji — "
+            "sprawdź kompletność projektu.[/yellow]"
+        )
+    if result.build_instructions:
+        console.print(f"  [dim]Instrukcje budowania: {result.build_instructions}")
+    return app_dir
+
+
+def cmd_build(args: argparse.Namespace) -> int:
+    import json
+
+    from .models import GeneratedPrompt
+
+    from . import builder
+
+    settings = load_settings()
+    with open(args.prompt, encoding="utf-8") as f:
+        generated = GeneratedPrompt.model_validate(json.load(f))
+    app_dir = args.out or f"out/app-{generated.okazja.slug}"
+
+    with console.status("[cyan]Model generuje projekt...") as status:
+        result = builder.build_app(
+            settings, generated, app_dir,
+            on_progress=lambda msg: status.update(f"[cyan]{msg}"),
+        )
     console.print(
         Panel.fit(
-            f"Gotowe. Otwórz pliki [bold]prompt-*.txt[/bold] w katalogu '{args.out}', "
-            "wklej do agenta kodującego, odbierz aplikację, a następnie opublikuj komendą "
-            "[bold]reklama publish[/bold].",
-            border_style="cyan",
+            f"Zapisano {len(result.files)} plików w [bold]{app_dir}[/bold].\n"
+            + ("⚠ Wyjście mogło zostać ucięte — sprawdź projekt.\n" if result.truncated else "")
+            + (f"Instrukcje budowania: {result.build_instructions}" if result.build_instructions else ""),
+            title=f"Auto-budowa: {generated.nazwa_aplikacji}",
+            border_style="green",
         )
     )
     return 0
@@ -143,8 +205,15 @@ def build_parser() -> argparse.ArgumentParser:
     pl.add_argument("temat", nargs="?", default="")
     pl.add_argument("--ile", type=int, default=5)
     pl.add_argument("--top", type=int, default=3, help="Dla ilu najlepszych nisz generować prompty")
+    pl.add_argument("--build", action="store_true",
+                    help="Auto-buduj kod najlepszej aplikacji (model generuje projekt)")
     pl.add_argument("--out", default=storage.DEFAULT_OUT)
     pl.set_defaults(func=cmd_pipeline)
+
+    b = sub.add_parser("build", help="Auto-buduj kod aplikacji z zapisanego promptu")
+    b.add_argument("--prompt", required=True, help="Ścieżka do out/prompt-<nazwa>.json")
+    b.add_argument("--out", default=None, help="Katalog projektu (domyślnie out/app-<nazwa>)")
+    b.set_defaults(func=cmd_build)
 
     pub = sub.add_parser("publish", help="Wgraj gotowy AAB do Google Play")
     pub.add_argument("--package", required=True, help="applicationId, np. com.firma.app")
