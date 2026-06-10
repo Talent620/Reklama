@@ -31,13 +31,38 @@ losers, scales winners, and reports — all within hard safety rails.
 
 ```bash
 npm install
-npm test          # 17 tests — full pipeline, deterministic, no network/secrets
+npm test          # 42 tests — full pipeline, deterministic, no network/secrets
 npm run dev       # http://localhost:3000 — fill the brief, click "Run growth loop"
 ```
 
 No API keys required. With none set, the engine uses a deterministic rule-based
 AI provider so runs are reproducible and CI is hermetic. Set `ANTHROPIC_API_KEY`
-to upgrade copy/strategy generation to the Claude API (see `.env.example`).
+to upgrade copy/strategy generation to the Claude API (see below).
+
+### Local network access (use from your phone / other devices)
+
+```bash
+npm run dev:lan     # dev server, reachable on your LAN
+# or, for a production build:
+npm run build && npm run start:lan
+```
+
+Both bind to `0.0.0.0` and print the exact URL to open from any device on the
+same Wi-Fi, e.g. `http://192.168.1.42:3000`. Run `npm run lan` any time to print
+your LAN URLs. If a device can't load it, allow inbound TCP on the port through
+your firewall.
+
+### Enable real AI (Claude API)
+
+1. Copy `.env.example` to `.env` (a ready `.env` is already included in the
+   downloadable package).
+2. Paste your key: `ANTHROPIC_API_KEY="sk-ant-..."`.
+3. Restart, then verify: open `http://localhost:3000/api/ai-test` — it makes a
+   real call and reports `"live": true` when the key works. `/api/health` also
+   shows the active provider.
+
+With a key, the copywriter role (`engine/creative-ai.ts`) sharpens ad copy with
+the model; without one, everything still runs on the deterministic provider.
 
 ### With Postgres (persistence)
 
