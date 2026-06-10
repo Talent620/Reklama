@@ -15,6 +15,10 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .models import StoreListing
 
 VALID_TRACKS = ("internal", "alpha", "beta", "production")
 _SCOPE = "https://www.googleapis.com/auth/androidpublisher"
@@ -27,6 +31,7 @@ class PublishResult:
     track: str
     status: str
     committed: bool
+    listing_updated: bool = False
 
 
 def _build_service(credentials_path: str):
@@ -51,9 +56,11 @@ def publish_aab(
     status: str = "completed",
     release_notes: str | None = None,
     release_name: str | None = None,
+    listing: "StoreListing | None" = None,
+    listing_language: str = "pl-PL",
     dry_run: bool = False,
 ) -> PublishResult:
-    """Wgrywa AAB i przypisuje go do kanału.
+    """Wgrywa AAB i przypisuje go do kanału; opcjonalnie aktualizuje kartę sklepu.
 
     Args:
         package_name: applicationId aplikacji (np. com.firma.appka).
@@ -61,6 +68,8 @@ def publish_aab(
         track: internal | alpha | beta | production.
         status: completed | draft | inProgress | halted (dla rollout: 'inProgress').
         release_notes: opis zmian (pl-PL).
+        listing: metadane sklepu (tytuł/opisy) do wgrania w tej samej edycji.
+        listing_language: język karty sklepu (BCP-47, np. 'pl-PL').
         dry_run: jeśli True — wgrywa do edycji, ale jej NIE zatwierdza (commit).
 
     Returns:
@@ -101,13 +110,34 @@ def publish_aab(
             body={"track": track, "releases": [release]},
         ).execute()
 
+        listing_updated = False
+        if listing is not None:
+            edits.listings().update(
+                packageName=package_name,
+                editId=edit_id,
+                language=listing_language,
+                body={
+                    "language": listing_language,
+                    "title": listing.tytul,
+                    "shortDescription": listing.krotki_opis,
+                    "fullDescription": listing.pelny_opis,
+                },
+            ).execute()
+            listing_updated = True
+
         if dry_run:
             # Sprzątamy edycję — nic nie publikujemy.
             edits.delete(packageName=package_name, editId=edit_id).execute()
-            return PublishResult(package_name, version_code, track, status, committed=False)
+            return PublishResult(
+                package_name, version_code, track, status,
+                committed=False, listing_updated=listing_updated,
+            )
 
         edits.commit(packageName=package_name, editId=edit_id).execute()
-        return PublishResult(package_name, version_code, track, status, committed=True)
+        return PublishResult(
+            package_name, version_code, track, status,
+            committed=True, listing_updated=listing_updated,
+        )
 
     except Exception:
         # Najlepszy wysiłek: usuń niezatwierdzoną edycję, by nie zostawić śmieci.

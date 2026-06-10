@@ -2,10 +2,14 @@
 
 Narzędzie, które **dla najmocniejszego modelu flagowego** (Claude Opus 4.8):
 
-1. **analizuje rynek Google Play** i znajduje nisze, na których realnie da się zarobić,
+1. **analizuje rynek Google Play** i znajduje nisze, na których realnie da się zarobić
+   (kalibrowane do realnych benchmarków eCPM AdMob 2025/2026),
 2. **generuje gotowy do wklejenia prompt** „zbuduj całą aplikację" na najwyższym poziomie,
 3. **opcjonalnie sam buduje kod aplikacji** z tego promptu (kompletny projekt Flutter na dysku),
-4. **automatycznie publikuje** gotowy plik aplikacji (AAB) do Google Play.
+4. **generuje kartę sklepu (ASO)** — tytuł/opisy w limitach Google Play, frazy kluczowe,
+   politykę prywatności i wskazówki do formularza Data Safety,
+5. **automatycznie publikuje** gotowy plik aplikacji (AAB) **wraz z opisami sklepu**
+   do Google Play.
 
 Pętla docelowa:
 
@@ -58,9 +62,16 @@ reklama pipeline "zdrowie i fitness" --build
 # 3c. Auto-budowa z wcześniej zapisanego promptu
 reklama build --prompt out/prompt-moja-apka.json
 
-# 4. Publikacja gotowego AAB
+# 3d. Karta sklepu (ASO) + polityka prywatności z zapisanego promptu
+reklama listing --prompt out/prompt-moja-apka.json
+
+# 4. Checklista zgodności przed publikacją
+reklama wymogi
+
+# 5. Publikacja gotowego AAB wraz z opisami sklepu
 reklama publish --package com.firma.app --aab ./app-release.aab \
-    --track internal --notes "Pierwsza wersja"
+    --track internal --notes "Pierwsza wersja" \
+    --listing out/listing-moja-apka.json
 ```
 
 Bez instalacji pakietu można też uruchamiać przez moduł:
@@ -93,6 +104,25 @@ Wskazówki:
 - `--dry-run` wgrywa do edycji, ale jej nie zatwierdza (bezpieczny test konfiguracji).
 - Plik musi być **podpisanym** App Bundle `.aab`.
 
+## Wymogi Google Play, które trzeba znać (research: czerwiec 2026)
+
+Pełną checklistę wyświetla komenda `reklama wymogi`. Najważniejsze:
+
+- **Nowe konta osobiste** (utworzone po 13.11.2023) muszą przejść **zamknięty test:
+  min. 12 testerów opt-in przez 14 kolejnych dni**, zanim dostaną dostęp do produkcji
+  (od 11.12.2024 — wcześniej było 20 testerów). Konta firmowe są zwolnione.
+  ([Play Console Help](https://support.google.com/googleplay/android-developer/answer/14151465))
+- **Limity karty sklepu:** tytuł ≤30 znaków, krótki opis ≤80, pełny opis ≤4000;
+  w tytule zakazane m.in. "free", "#1", "best".
+  ([Play Console Help](https://support.google.com/googleplay/android-developer/answer/9898842))
+- **Od 31.08.2026 nowe aplikacje muszą celować w Android 16 (API 36).**
+  ([Android Developers](https://developer.android.com/google/play/requirements/target-sdk))
+- **Formularz Data Safety i polityka prywatności są obowiązkowe** i muszą być spójne —
+  rozbieżność blokuje przegląd. Komenda `reklama listing` generuje oba artefakty.
+- **Benchmarki AdMob (eCPM, Tier-1):** banner ~0,5–1,5 USD, interstitial ~5–14 USD,
+  rewarded ~18–45 USD — analiza nisz używa tych widełek do urealnienia szacunków
+  przychodu. ([Playwire](https://www.playwire.com/blog/admob-ecpm-benchmarks-what-publishers-should-expect), [Tenjin](https://tenjin.com/blog/ad-mon-gaming-2026/))
+
 ---
 
 ## Architektura
@@ -102,7 +132,9 @@ reklama/
 ├── analyzer.py          # Etap 1: web search + structured output → raport nisz
 ├── prompt_generator.py  # Etap 2: gotowy do wklejenia prompt budujący aplikację
 ├── builder.py           # Etap 2.5: auto-budowa kodu aplikacji z promptu (opcjonalna)
-├── publisher.py         # Etap 3: upload AAB do Google Play (androidpublisher v3)
+├── aso.py               # Etap 2.7: karta sklepu (ASO) + polityka prywatności
+├── knowledge.py         # baza wiedzy: wymogi Google Play i benchmarki eCPM (2026)
+├── publisher.py         # Etap 3: upload AAB + opisów sklepu (androidpublisher v3)
 ├── pipeline / cli.py    # orkiestracja i interfejs CLI
 ├── _llm.py              # warstwa nad Anthropic SDK (model flagowy)
 ├── models.py            # modele danych (Pydantic)

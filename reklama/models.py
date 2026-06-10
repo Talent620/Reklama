@@ -64,6 +64,32 @@ class OpportunityReport(BaseModel):
         return max(self.okazje, key=lambda o: o.wynik)
 
 
+class StoreListing(BaseModel):
+    """Metadane do karty sklepu Google Play (zgodne z twardymi limitami)."""
+
+    tytul: str = Field(description="Tytuł aplikacji, max 30 znaków, bez 'free'/'#1'/'best'")
+    krotki_opis: str = Field(description="Krótki opis, max 80 znaków, konkretna korzyść")
+    pelny_opis: str = Field(description="Pełny opis, max 4000 znaków, z akapitami i listą funkcji")
+    slowa_kluczowe_aso: list[str] = Field(description="8-15 fraz ASO wplecionych w opisy")
+    kategoria: str = Field(description="Kategoria Google Play, np. 'Health & Fitness'")
+    notatki_wydania: str = Field(description="Release notes pierwszej wersji, max 500 znaków")
+    polityka_prywatnosci_md: str = Field(
+        description="Pełna treść polityki prywatności (Markdown, PL) spójna z Data Safety"
+    )
+    data_safety_wskazowki: list[str] = Field(
+        description="Jak wypełnić formularz Data Safety dla tej aplikacji (per kategoria danych)"
+    )
+
+    def przytnij_limity(self) -> "StoreListing":
+        """Twarde przycięcie do limitów Google Play (asekuracja po stronie klienta)."""
+        return self.model_copy(update={
+            "tytul": self.tytul[:30].rstrip(),
+            "krotki_opis": self.krotki_opis[:80].rstrip(),
+            "pelny_opis": self.pelny_opis[:4000].rstrip(),
+            "notatki_wydania": self.notatki_wydania[:500].rstrip(),
+        })
+
+
 class GeneratedPrompt(BaseModel):
     """Gotowy do wklejenia prompt budujący całą aplikację."""
 

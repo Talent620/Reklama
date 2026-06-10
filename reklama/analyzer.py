@@ -10,13 +10,16 @@ import anthropic
 
 from ._llm import parse_into, research
 from .config import Settings
+from .knowledge import MARKET_FACTS
 from .models import OpportunityReport
 
-_RESEARCH_SYSTEM = """\
+_RESEARCH_SYSTEM = f"""\
 Jesteś analitykiem rynku aplikacji mobilnych i przedsiębiorcą, który zbudował \
 kilkanaście dochodowych aplikacji na Androida. Twoim zadaniem jest znaleźć \
 KONKRETNE, dochodowe nisze w Google Play, które da się zrealizować jako \
 względnie prostą aplikację i zmonetyzować.
+
+{MARKET_FACTS}
 
 Zasady:
 - Szukaj realnego popytu (wyszukiwania, trendy, rosnące kategorie), a nie modnych haseł.
@@ -24,7 +27,8 @@ Zasady:
 - Bądź konkretny co do monetyzacji: stawki reklam, ceny subskrypcji/IAP, co odblokowuje płatność.
 - Odrzucaj pomysły wymagające dużych zespołów, licencji, treści chronionych prawem autorskim
   lub łamiące politykę Google Play.
-- Opieraj wnioski na danych z wyszukiwania; gdy czegoś nie wiesz — powiedz wprost."""
+- Opieraj wnioski na danych z wyszukiwania; gdy czegoś nie wiesz — powiedz wprost.
+- Szacunki przychodów kalibruj do powyższych benchmarków eCPM i realnego DAU."""
 
 _RESEARCH_PROMPT = """\
 Obszar/temat do zbadania: {topic}

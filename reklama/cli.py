@@ -6,7 +6,10 @@ Komendy:
     reklama pipeline  "fitness"          # pełny przebieg: analiza -> prompt(y)
     reklama pipeline  "fitness" --build  # j.w. + auto-budowa kodu najlepszej aplikacji
     reklama build     --prompt out/prompt-x.json   # zbuduj kod z zapisanego promptu
-    reklama publish   --package ... --aab app.aab --track internal
+    reklama listing   --prompt out/prompt-x.json   # karta sklepu (ASO) + polityka prywatności
+    reklama wymogi                       # checklista zgodności Google Play
+    reklama publish   --package ... --aab app.aab --track internal \
+                      --listing out/listing-x.json   # AAB + opisy sklepu w jednej edycji
 """
 
 from __future__ import annotations
@@ -89,6 +92,17 @@ def cmd_pipeline(args: argparse.Namespace) -> int:
         txt_path, _ = storage.save_prompt(generated, args.out)
         console.print(f"  [green]✓[/green] {o.nazwa} -> {txt_path}")
 
+    # Karta sklepu (ASO) + polityka prywatności dla najlepszej niszy.
+    if best_generated is not None and not args.no_aso:
+        from . import aso
+
+        best = best_generated.okazja
+        with console.status(f"[cyan]Karta sklepu (ASO): {best.nazwa}..."):
+            listing = aso.generate_listing(settings, best)
+        json_path, policy_path = aso.save_listing(listing, best.slug, args.out)
+        console.print(f"  [green]✓[/green] Karta sklepu -> {json_path}")
+        console.print(f"  [green]✓[/green] Polityka prywatności -> {policy_path}")
+
     if args.build and best_generated is not None:
         app_dir = _run_build(settings, best_generated, args.out)
         next_step = (
@@ -162,6 +176,13 @@ def cmd_publish(args: argparse.Namespace) -> int:
 
     settings = load_settings()
     creds = settings.require_play_credentials()
+
+    listing = None
+    if args.listing:
+        from . import aso
+
+        listing = aso.load_listing(args.listing)
+
     with console.status(f"[cyan]Wgrywam {args.aab} na kanał '{args.track}'..."):
         result = publisher.publish_aab(
             creds,
@@ -170,15 +191,58 @@ def cmd_publish(args: argparse.Namespace) -> int:
             track=args.track,
             status=args.status,
             release_notes=args.notes,
+            listing=listing,
             dry_run=args.dry_run,
         )
     msg = (
         f"applicationId: {result.package_name}\n"
         f"versionCode:   {result.version_code}\n"
         f"kanal:         {result.track} ({result.status})\n"
+        f"karta sklepu:  {'zaktualizowana' if result.listing_updated else 'bez zmian'}\n"
         f"zatwierdzono:  {'TAK' if result.committed else 'NIE (dry-run)'}"
     )
     console.print(Panel(msg, title="Publikacja Google Play", border_style="green"))
+    return 0
+
+
+def cmd_listing(args: argparse.Namespace) -> int:
+    import json
+
+    from . import aso
+    from .models import GeneratedPrompt
+
+    settings = load_settings()
+    with open(args.prompt, encoding="utf-8") as f:
+        generated = GeneratedPrompt.model_validate(json.load(f))
+    opportunity = generated.okazja
+
+    with console.status(f"[cyan]Karta sklepu (ASO): {opportunity.nazwa}..."):
+        listing = aso.generate_listing(settings, opportunity)
+    json_path, policy_path = aso.save_listing(listing, opportunity.slug, args.out)
+
+    console.print(Panel(
+        f"[bold]Tytuł ({len(listing.tytul)}/30):[/bold] {listing.tytul}\n"
+        f"[bold]Krótki opis ({len(listing.krotki_opis)}/80):[/bold] {listing.krotki_opis}\n"
+        f"[bold]Kategoria:[/bold] {listing.kategoria}\n"
+        f"[bold]Frazy ASO:[/bold] {', '.join(listing.slowa_kluczowe_aso)}",
+        title="Karta sklepu Google Play", border_style="green",
+    ))
+    console.print(f"[dim]Zapisano: {json_path} oraz {policy_path}")
+    console.print(
+        "[dim]Użyj przy publikacji: reklama publish ... --listing " + json_path
+    )
+    return 0
+
+
+def cmd_wymogi(_args: argparse.Namespace) -> int:
+    from .knowledge import CHECKLIST
+
+    table = Table(title="Checklista publikacji w Google Play (stan: 2026)", show_lines=True)
+    table.add_column("Wymóg", style="bold green", no_wrap=False)
+    table.add_column("Szczegóły")
+    for name, details in CHECKLIST:
+        table.add_row(name, details)
+    console.print(table)
     return 0
 
 
@@ -207,6 +271,8 @@ def build_parser() -> argparse.ArgumentParser:
     pl.add_argument("--top", type=int, default=3, help="Dla ilu najlepszych nisz generować prompty")
     pl.add_argument("--build", action="store_true",
                     help="Auto-buduj kod najlepszej aplikacji (model generuje projekt)")
+    pl.add_argument("--no-aso", action="store_true",
+                    help="Pomiń generowanie karty sklepu i polityki prywatności")
     pl.add_argument("--out", default=storage.DEFAULT_OUT)
     pl.set_defaults(func=cmd_pipeline)
 
@@ -215,12 +281,22 @@ def build_parser() -> argparse.ArgumentParser:
     b.add_argument("--out", default=None, help="Katalog projektu (domyślnie out/app-<nazwa>)")
     b.set_defaults(func=cmd_build)
 
+    li = sub.add_parser("listing", help="Karta sklepu (ASO) + polityka prywatności z promptu")
+    li.add_argument("--prompt", required=True, help="Ścieżka do out/prompt-<nazwa>.json")
+    li.add_argument("--out", default=storage.DEFAULT_OUT)
+    li.set_defaults(func=cmd_listing)
+
+    w = sub.add_parser("wymogi", help="Checklista zgodności publikacji w Google Play")
+    w.set_defaults(func=cmd_wymogi)
+
     pub = sub.add_parser("publish", help="Wgraj gotowy AAB do Google Play")
     pub.add_argument("--package", required=True, help="applicationId, np. com.firma.app")
     pub.add_argument("--aab", required=True, help="Ścieżka do podpisanego .aab")
     pub.add_argument("--track", default="internal", help="internal|alpha|beta|production")
     pub.add_argument("--status", default="completed", help="completed|draft|inProgress|halted")
     pub.add_argument("--notes", default=None, help="Opis zmian (pl-PL)")
+    pub.add_argument("--listing", default=None,
+                     help="Ścieżka do out/listing-<nazwa>.json — wgra też opisy sklepu")
     pub.add_argument("--dry-run", action="store_true", help="Wgraj bez zatwierdzania (commit)")
     pub.set_defaults(func=cmd_publish)
 

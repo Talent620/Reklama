@@ -11,14 +11,17 @@ import anthropic
 
 from ._llm import generate_text
 from .config import Settings
+from .knowledge import MARKET_FACTS
 from .models import AppOpportunity, GeneratedPrompt
 
 DEFAULT_STACK = "Flutter (Dart) + Material 3, gotowy build do AAB"
 
-_SYSTEM = """\
+_SYSTEM = f"""\
 Jesteś światowej klasy inżynierem promptów i architektem aplikacji mobilnych. \
 Tworzysz JEDEN, samowystarczalny prompt, który po wklejeniu do agenta kodującego \
 zwróci KOMPLETNĄ, gotową do zbudowania i opublikowania aplikację Android.
+
+{MARKET_FACTS}
 
 Prompt, który tworzysz, musi:
 - być napisany jako polecenie do wykonawcy (drugi model/agent), nie jako opis dla człowieka,
