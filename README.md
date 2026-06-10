@@ -146,44 +146,75 @@ build. Highlights now in the codebase:
 - **Google Consent Mode v2 gate** on landing pages — deny-by-default, consent
   banner, and `ad_user_data` / `ad_personalization` signals, per EEA rules.
 
-## Live Meta integration (real, gated, no auto-spend)
+## Live channel integrations (real, gated, no auto-spend)
 
-`channels/meta.ts` + `channels/meta-client.ts` implement the real Meta Marketing
-API path (Campaign → Ad Set → Ad Creative → Ad) against the official Graph API.
-It activates **only** when all of the following hold:
+Four channels have real official-API `publishLive` implementations:
 
-1. a human approved the run (`humanApproved: true`), **and**
-2. a System User token + ad-account id + page id are provided.
+| Channel | Client | Creates | Default state |
+| --- | --- | --- | --- |
+| Meta Ads | `channels/meta-client.ts` | Campaign → Ad Set → Ad Creative → Ad | PAUSED |
+| Google Ads | `channels/google-client.ts` | Campaign Budget → Campaign | PAUSED |
+| TikTok Ads | `channels/tiktok.ts` | Campaign | DISABLE (paused) |
+| LinkedIn Ads | `channels/linkedin.ts` | Campaign Group | DRAFT |
 
-Even then, every object is created **PAUSED** — standing up a campaign spends
-nothing; turning it on is a separate, deliberate action in Ads Manager. The HTTP
-`/api/run` endpoint never authorises live publishing; you must call the engine
-programmatically and pass the approval + credentials:
+Each activates **only** when (1) a human approved the run
+(`humanApproved: true`) **and** (2) that channel's credentials are present. Even
+then every object is created **paused/draft** — standing up a campaign spends
+nothing; turning it on is a separate, deliberate action in the platform's
+manager. The HTTP `/api/run` endpoint never authorises live publishing; you
+call the engine programmatically and pass approval + credentials:
 
 ```ts
 import { runGrowthLoop } from "@/lib/engine";
 
 await runGrowthLoop(brief, {
   humanApproved: true,
-  credentials: { meta_ads: process.env.META_ADS_ACCESS_TOKEN! },
-  accounts: { meta_ads: { accountId: process.env.META_ADS_AD_ACCOUNT_ID!, pageId: process.env.META_ADS_PAGE_ID!, countries: ["PL"] } },
+  credentials: {
+    meta_ads: process.env.META_ADS_ACCESS_TOKEN!,
+    google_ads: process.env.GOOGLE_ADS_ACCESS_TOKEN!,
+  },
+  accounts: {
+    meta_ads: { accountId: process.env.META_ADS_AD_ACCOUNT_ID!, pageId: process.env.META_ADS_PAGE_ID!, countries: ["PL"] },
+    google_ads: { accountId: process.env.GOOGLE_ADS_CUSTOMER_ID!, developerToken: process.env.GOOGLE_ADS_DEVELOPER_TOKEN! },
+  },
 });
 ```
 
-The client takes an injectable `fetch`, so the whole flow is unit-tested
-(`tests/meta.test.ts`) with no network and no spend.
+Every client takes an injectable `fetch`, so all four flows are unit-tested
+(`tests/meta.test.ts`, `tests/channels.test.ts`) with no network and no spend.
 
-## Persistence
+## Persistence & closed-loop learning
 
 `/api/run` persists each run (brief, campaigns, final metrics) to Postgres when
 `DATABASE_URL` is set, via `src/lib/persistence.ts` — **best-effort and
 non-blocking**: with no database it returns a clear no-op and still hands back
-the full run. `npm run seed` writes a demo brief + run. Schema in
-`prisma/schema.prisma`.
+the full run. On the next run it **warm-starts optimization from the persisted
+metrics** (`loadLatestMetrics`), so the loop improves on real history rather
+than restarting cold.
 
-## Roadmap
+Real platform results flow back in via **`POST /api/metrics`**
+(`{ briefId, snapshots[] }`). Set `config.simulate = false` to optimise purely
+on this real data instead of the built-in simulator. `npm run seed` writes a
+demo brief + run; schema in `prisma/schema.prisma`.
 
-- Extend `publishLive` to Google Ads / TikTok / LinkedIn against `api-specs.ts`.
-- Optimise against persisted historical metrics across periods.
+## Multi-model AI roles
+
+`src/lib/ai/roles.ts` defines distinct roles (strategist, copywriter, creative
+director, analyst, QA), each a separate system prompt that can map to a
+different model. The copywriter role runs in the loop
+(`engine/creative-ai.ts`): with a real `ANTHROPIC_API_KEY` it sharpens the ad
+copy (re-enforcing character caps and falling back to the template on any
+error); under the deterministic provider it's a **no-op**, so offline runs and
+tests stay reproducible.
+
+## Status
+
+All ten product modules are implemented, wired into the autonomous loop, and
+covered by **42 deterministic tests** (`npm test`) plus typecheck and a
+production build in CI. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and
+[`CHANGELOG.md`](CHANGELOG.md).
+
+### Remaining production hardening
+- Add Google/TikTok/LinkedIn ad-group + ad creation (campaign shells exist).
 - Swap the demo consent banner for a certified CMP.
-- Multi-model AI roles (separate strategy/copy/creative/QA models).
+- Map AI roles to distinct production models + add an automated QA-role gate.

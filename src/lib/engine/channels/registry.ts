@@ -7,30 +7,11 @@
  */
 import { BaseAdapter } from "./base";
 import { MetaAdsAdapter } from "./meta";
-import type { ChannelAdapter, PublishRequest } from "./adapter";
+import { GoogleAdsAdapter } from "./google";
+import { TikTokAdsAdapter } from "./tiktok";
+import { LinkedInAdsAdapter } from "./linkedin";
+import type { ChannelAdapter } from "./adapter";
 import type { ChannelId } from "../types";
-
-class GoogleAdsAdapter extends BaseAdapter {
-  readonly channel = "google_ads" as const;
-  protected readonly credentialEnv = "GOOGLE_ADS_DEVELOPER_TOKEN";
-  validate(req: PublishRequest): string[] {
-    const w = super.validate(req);
-    for (const c of req.creatives) {
-      if (c.headline.length > 30) w.push(`Google headline > 30 chars: "${c.headline}"`);
-    }
-    return w;
-  }
-}
-
-class LinkedInAdsAdapter extends BaseAdapter {
-  readonly channel = "linkedin_ads" as const;
-  protected readonly credentialEnv = "LINKEDIN_ADS_ACCESS_TOKEN";
-}
-
-class TikTokAdsAdapter extends BaseAdapter {
-  readonly channel = "tiktok_ads" as const;
-  protected readonly credentialEnv = "TIKTOK_ADS_ACCESS_TOKEN";
-}
 
 class YouTubeAdsAdapter extends BaseAdapter {
   readonly channel = "youtube_ads" as const;

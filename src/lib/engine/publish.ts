@@ -15,6 +15,12 @@ export interface ChannelAccount {
   pageId?: string;
   countries?: string[];
   apiVersion?: string;
+  /** Google Ads developer token (separate from the OAuth access token). */
+  developerToken?: string;
+  /** Google Ads manager (MCC) customer id. */
+  loginCustomerId?: string;
+  /** TikTok / LinkedIn advertiser id when distinct from accountId. */
+  advertiserId?: string;
 }
 
 export interface PublishOptions {
@@ -72,6 +78,9 @@ export async function publishCampaigns(
       pageId: account?.pageId,
       countries: account?.countries,
       apiVersion: account?.apiVersion,
+      developerToken: account?.developerToken,
+      loginCustomerId: account?.loginCustomerId,
+      advertiserId: account?.advertiserId,
       humanApproved: opts.humanApproved,
       baseUrl: opts.baseUrl,
       fetchImpl: opts.fetchImpl,

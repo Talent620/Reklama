@@ -40,6 +40,12 @@ export interface AdapterContext {
   accountId?: string;
   /** Meta Page id used to build ad creatives (object_story_spec). */
   pageId?: string;
+  /** Google Ads developer token (separate from the OAuth access token). */
+  developerToken?: string;
+  /** Google Ads manager (MCC) customer id for the login-customer-id header. */
+  loginCustomerId?: string;
+  /** TikTok / LinkedIn advertiser id when distinct from accountId. */
+  advertiserId?: string;
   /** Two-letter country codes to target. */
   countries?: string[];
   /** API version override (e.g. Meta "v23.0"). */

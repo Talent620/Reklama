@@ -32,6 +32,8 @@ import { optimize } from "./optimization";
 import { buildReport } from "./reporting";
 import { thompsonAllocate, type BanditAllocation, type BanditArm } from "./bandit";
 import { dailyBudget } from "./brief";
+import { enhanceCreativesWithAi } from "./creative-ai";
+import { resolveProvider, type AiProvider } from "../ai/provider";
 
 export interface RunConfig {
   baseUrl?: string;
@@ -42,10 +44,23 @@ export interface RunConfig {
   accounts?: Partial<Record<string, ChannelAccount>>;
   /** Injectable fetch passed to channel adapters (tests / custom transport). */
   fetchImpl?: typeof fetch;
+  /** AI provider (copywriter role). Defaults to env resolution (rule-based offline). */
+  provider?: AiProvider;
   /** Number of measure→optimize iterations to run. */
   iterations?: number;
   /** Seed for the deterministic simulator. */
   seed?: string;
+  /**
+   * Real observed metrics to warm-start optimization from (e.g. loaded from a
+   * previous run / live platform pull). These seed the cumulative store so the
+   * loop optimises against real history, not just simulation.
+   */
+  priorMetrics?: MetricSnapshot[];
+  /**
+   * When false, the simulator is disabled and the loop optimises purely on the
+   * provided `priorMetrics`. Defaults to true so the demo runs end-to-end.
+   */
+  simulate?: boolean;
 }
 
 export interface LoopIteration {
@@ -85,7 +100,10 @@ export async function runGrowthLoop(input: unknown, config: RunConfig = {}): Pro
   const strategy = buildStrategy(brief, analysis);
 
   // 4. Creative → 5. Landing (A/B)
-  const creatives = generateCreatives(brief, analysis, strategy);
+  // Copywriter role refines the templates when a real model is configured;
+  // a no-op under the deterministic provider so offline runs stay reproducible.
+  const provider = cfg.provider ?? resolveProvider();
+  const creatives = await enhanceCreativesWithAi(generateCreatives(brief, analysis, strategy), brief, provider);
   const landingPages = [generateLandingPage(brief, analysis, "A"), generateLandingPage(brief, analysis, "B")];
 
   // 6. Publish (dry-run unless credentials + approval present)
@@ -102,14 +120,22 @@ export async function runGrowthLoop(input: unknown, config: RunConfig = {}): Pro
   // 7–8. Measure → Optimize loop
   const iterations: LoopIteration[] = [];
   const cumulative = new Map<string, MetricSnapshot>();
+  // Warm-start from real observed metrics so optimization works on history.
+  for (const snap of cfg.priorMetrics ?? []) {
+    const prev = cumulative.get(snap.variantId);
+    cumulative.set(snap.variantId, prev ? mergeSnapshots(prev, snap) : snap);
+  }
+  const useSimulator = cfg.simulate !== false;
   let converged = false;
 
   for (let i = 0; i < cfg.iterations; i++) {
-    const aov = brief.averageOrderValue ?? 60;
-    const period = simulatePeriod(creatives, strategy, aov, `${cfg.seed}:${brief.id}:${i}`);
-    for (const snap of period) {
-      const prev = cumulative.get(snap.variantId);
-      cumulative.set(snap.variantId, prev ? mergeSnapshots(prev, snap) : snap);
+    if (useSimulator) {
+      const aov = brief.averageOrderValue ?? 60;
+      const period = simulatePeriod(creatives, strategy, aov, `${cfg.seed}:${brief.id}:${i}`);
+      for (const snap of period) {
+        const prev = cumulative.get(snap.variantId);
+        cumulative.set(snap.variantId, prev ? mergeSnapshots(prev, snap) : snap);
+      }
     }
     const metrics = [...cumulative.values()].map(derive);
     const optimization = optimize({ strategy, metrics, maxDailyBudget: cfg.maxDailyBudget });

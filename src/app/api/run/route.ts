@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { runGrowthLoop } from "@/lib/engine";
-import { persistRun } from "@/lib/persistence";
+import { ingestBrief, runGrowthLoop } from "@/lib/engine";
+import { loadLatestMetrics, persistRun } from "@/lib/persistence";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +23,17 @@ export async function POST(req: Request) {
     const { config, ...brief } = body as Record<string, unknown>;
     const maxDailyBudget = Number(process.env.REKLAMA_MAX_DAILY_BUDGET ?? 50);
 
+    // Warm-start from any persisted history for this brief so optimization
+    // builds on real data across runs (no-op without a database).
+    const priorMetrics = await loadLatestMetrics(ingestBrief(brief).id).catch(() => []);
+
     const result = await runGrowthLoop(brief, {
       iterations: clampIterations((config as any)?.iterations),
       maxDailyBudget,
       // The HTTP surface never authorises live spend.
       humanApproved: false,
       seed: typeof (config as any)?.seed === "string" ? (config as any).seed : "api",
+      priorMetrics,
     });
 
     // Best-effort persistence — never blocks returning the run.
