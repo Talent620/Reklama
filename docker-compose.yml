@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reklama
+      POSTGRES_PASSWORD: reklama
+      POSTGRES_DB: reklama
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reklama"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://reklama:reklama@db:5432/reklama?schema=public
+      REKLAMA_MAX_DAILY_BUDGET: "50"
+      REKLAMA_REQUIRE_HUMAN_APPROVAL: "true"
+    ports:
+      - "3000:3000"
+
+volumes:
+  dbdata:

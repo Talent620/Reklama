@@ -1,0 +1,76 @@
+// Reklama persistence schema.
+// Postgres in prod (DATABASE_URL). The engine is pure/in-memory; these tables
+// persist runs so the loop has history to optimise against across periods.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Brief {
+  id             String     @id
+  company        String
+  product        String
+  description    String
+  model          String
+  goal           String
+  currency       String     @default("PLN")
+  monthlyBudget  Float
+  audience       String?
+  markets        String[]
+  averageOrderValue Float?
+  grossMargin    Float?
+  websiteUrl     String?
+  createdAt      DateTime   @default(now())
+  runs           Run[]
+}
+
+model Run {
+  id          String      @id @default(cuid())
+  briefId     String
+  brief       Brief       @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  converged   Boolean     @default(false)
+  // Full engine output snapshot for the dashboard / audit trail.
+  payload     Json
+  createdAt   DateTime    @default(now())
+  campaigns   Campaign[]
+  metrics     MetricRow[]
+
+  @@index([briefId])
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  runId         String
+  run           Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  channel       String
+  externalId    String
+  status        String   // DRAFT | PAUSED | LIVE
+  dryRun        Boolean  @default(true)
+  dailyBudget   Float
+  destinationUrl String
+  createdAt     DateTime @default(now())
+
+  @@index([runId])
+}
+
+model MetricRow {
+  id          String   @id @default(cuid())
+  runId       String
+  run         Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  variantId   String
+  channel     String
+  impressions Int
+  clicks      Int
+  spend       Float
+  conversions Int
+  revenue     Float
+  period      Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([runId])
+}
