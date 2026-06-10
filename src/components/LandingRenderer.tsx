@@ -7,7 +7,7 @@ import type { LandingPage, LandingSection } from "@/lib/engine/types";
 export function LandingRenderer({ page }: { page: LandingPage }) {
   return (
     <main className="min-h-screen bg-white text-slate-900">
-      <TrackingSnippet events={page.trackedEvents} variant={page.variant} />
+      <TrackingSnippet variant={page.variant} />
       <div className="mx-auto max-w-3xl px-6 py-16">
         {page.sections.map((s, i) => (
           <Section key={i} section={s} first={i === 0} />
@@ -113,28 +113,45 @@ function fieldLabel(field: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-/** Minimal, consent-gated analytics: posts tracked events to /api/track. */
-function TrackingSnippet({ events, variant }: { events: string[]; variant: string }) {
+/**
+ * Consent-gated analytics implementing Google Consent Mode v2 semantics.
+ *
+ * Per EEA requirements (enforced since 2024/2025), advertising tags must not
+ * collect/transmit personal data until the user grants consent, and must carry
+ * the v2 signals `ad_user_data` and `ad_personalization`. Until consent is
+ * given we only buffer a non-personal page_view locally; on "Accept" we set
+ * granted defaults and flush. On "Reject" nothing personal is sent.
+ * See docs/RESEARCH.md for citations.
+ */
+function TrackingSnippet({ variant }: { variant: string }) {
   const script = `
     (function(){
-      var sent = {};
-      function track(name, meta){
-        try { navigator.sendBeacon('/api/track', JSON.stringify({event:name, variant:'${variant}', meta:meta||{}, ts:Date.now()})); } catch(e){}
+      var KEY='reklama_consent', sent={}, consent=localStorage.getItem(KEY);
+      // Consent Mode v2 default: everything denied until the user decides.
+      var state={ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied'};
+      function apply(v){ state.ad_user_data=v; state.ad_personalization=v; state.analytics_storage=v; }
+      function track(name){
+        if(state.analytics_storage!=='granted') return; // gated
+        try{ navigator.sendBeacon('/api/track', JSON.stringify({event:name,variant:'${variant}',consent:state,ts:Date.now()})); }catch(e){}
       }
-      track('page_view');
-      document.addEventListener('click', function(e){
-        var t = e.target.closest('[data-track]');
-        if (t) track(t.getAttribute('data-track'));
-      });
-      document.addEventListener('submit', function(e){
-        var t = e.target.closest('[data-track]');
-        if (t) track(t.getAttribute('data-track'));
-      });
-      window.addEventListener('scroll', function(){
-        var p = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
-        if (p > 0.5 && !sent['s50']) { sent['s50']=1; track('scroll_50'); }
-        if (p > 0.9 && !sent['s90']) { sent['s90']=1; track('scroll_90'); }
-      }, {passive:true});
+      function start(){
+        track('page_view');
+        document.addEventListener('click',function(e){var t=e.target.closest('[data-track]'); if(t) track(t.getAttribute('data-track'));});
+        document.addEventListener('submit',function(e){var t=e.target.closest('[data-track]'); if(t) track(t.getAttribute('data-track'));});
+        window.addEventListener('scroll',function(){var p=(scrollY+innerHeight)/document.body.scrollHeight;
+          if(p>0.5&&!sent.s50){sent.s50=1;track('scroll_50');} if(p>0.9&&!sent.s90){sent.s90=1;track('scroll_90');}},{passive:true});
+      }
+      function banner(){
+        var b=document.createElement('div');
+        b.style.cssText='position:fixed;left:0;right:0;bottom:0;background:#0f172a;color:#fff;padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:center;font:14px sans-serif;z-index:9999;flex-wrap:wrap';
+        b.innerHTML='<span>We use consent-based analytics (GDPR / Consent Mode v2).</span>';
+        function mk(label,val){var x=document.createElement('button');x.textContent=label;x.style.cssText='padding:8px 16px;border-radius:8px;border:0;cursor:pointer;font-weight:600;'+(val==='granted'?'background:#6366f1;color:#fff':'background:#334155;color:#fff');x.onclick=function(){localStorage.setItem(KEY,val);apply(val);b.remove();if(val==='granted')start();};return x;}
+        b.appendChild(mk('Reject','denied')); b.appendChild(mk('Accept','granted'));
+        document.body.appendChild(b);
+      }
+      if(consent==='granted'){apply('granted');start();}
+      else if(consent==='denied'){apply('denied');}
+      else { if(document.readyState!=='loading') banner(); else document.addEventListener('DOMContentLoaded',banner); }
     })();
   `;
   return <script dangerouslySetInnerHTML={{ __html: script }} />;

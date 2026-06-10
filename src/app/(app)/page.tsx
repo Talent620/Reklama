@@ -194,6 +194,21 @@ function Results({ result }: { result: RunResult }) {
             </div>
           ))}
         </Panel>
+
+        <Panel title="Next-period budget · Thompson sampling">
+          {last?.recommendedAllocation.map((a) => (
+            <div key={a.channel} className="border-b border-white/5 py-1.5 last:border-0">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-300">{a.channel}</span>
+                <span className="text-slate-400">{a.dailyBudget} /day · {Math.round(a.share * 100)}%</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-white/10">
+                <div className="h-full bg-accent2" style={{ width: `${Math.round(a.share * 100)}%` }} />
+              </div>
+            </div>
+          ))}
+          <p className="mt-2 text-[11px] text-slate-500">Budgeted multi-armed bandit — explores new channels, exploits winners. See docs/RESEARCH.md.</p>
+        </Panel>
       </div>
 
       <div className="card">

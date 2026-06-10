@@ -12,6 +12,8 @@ import {
   buildReport,
   runGrowthLoop,
 } from "@/lib/engine";
+import { thompsonAllocate, betaSample, type BanditArm } from "@/lib/engine/bandit";
+import { seededRng } from "@/lib/engine/util";
 import type { BriefInput } from "@/lib/engine/brief";
 
 const ECOM_BRIEF: BriefInput = {
@@ -180,6 +182,54 @@ describe("reporting", () => {
   });
 });
 
+describe("bandit allocator (Thompson sampling)", () => {
+  const arms: BanditArm[] = [
+    { channel: "google_ads", conversions: 40, clicks: 400, cpc: 1.0 }, // best value/€
+    { channel: "meta_ads", conversions: 20, clicks: 400, cpc: 1.0 },
+    { channel: "tiktok_ads", conversions: 5, clicks: 400, cpc: 1.0 },
+  ];
+
+  it("is deterministic for a fixed seed", () => {
+    const a = thompsonAllocate(arms, { totalBudget: 90, maxPerChannel: 50, seed: "s" });
+    const b = thompsonAllocate(arms, { totalBudget: 90, maxPerChannel: 50, seed: "s" });
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+
+  it("allocates the most budget to the best reward/cost arm", () => {
+    const alloc = thompsonAllocate(arms, { totalBudget: 90, maxPerChannel: 50, seed: "x", rounds: 4000 });
+    const top = [...alloc].sort((p, q) => q.dailyBudget - p.dailyBudget)[0];
+    expect(top.channel).toBe("google_ads");
+  });
+
+  it("never exceeds the per-channel ceiling", () => {
+    const alloc = thompsonAllocate(arms, { totalBudget: 300, maxPerChannel: 40, seed: "x" });
+    for (const a of alloc) expect(a.dailyBudget).toBeLessThanOrEqual(40 + 0.01);
+  });
+
+  it("shares sum to ~1 and budget sums to ~total (within ceiling capacity)", () => {
+    const alloc = thompsonAllocate(arms, { totalBudget: 90, maxPerChannel: 50, seed: "x" });
+    const shareSum = alloc.reduce((s, a) => s + a.share, 0);
+    expect(shareSum).toBeGreaterThan(0.98);
+    expect(shareSum).toBeLessThan(1.02);
+  });
+
+  it("explores: a zero-data arm still receives non-zero budget", () => {
+    const withCold: BanditArm[] = [...arms, { channel: "linkedin_ads", conversions: 0, clicks: 0, cpc: 1 }];
+    const alloc = thompsonAllocate(withCold, { totalBudget: 100, maxPerChannel: 50, seed: "x", rounds: 4000 });
+    const cold = alloc.find((a) => a.channel === "linkedin_ads")!;
+    expect(cold.dailyBudget).toBeGreaterThan(0);
+  });
+
+  it("betaSample stays in (0,1) and concentrates as data grows", () => {
+    const rng = seededRng("b");
+    for (let i = 0; i < 100; i++) {
+      const s = betaSample(50, 100, rng);
+      expect(s).toBeGreaterThan(0);
+      expect(s).toBeLessThan(1);
+    }
+  });
+});
+
 describe("orchestrator (end-to-end autonomous loop)", () => {
   it("runs the full pipeline in dry-run without any external dependency", async () => {
     const result = await runGrowthLoop(ECOM_BRIEF, { iterations: 4, seed: "test" });
@@ -193,6 +243,11 @@ describe("orchestrator (end-to-end autonomous loop)", () => {
     for (const r of result.publish.results) expect(r.status).not.toBe("LIVE");
     expect(result.iterations.length).toBeGreaterThan(0);
     expect(result.report.kpiStatus.length).toBeGreaterThan(0);
+    // Each iteration carries a bandit reallocation recommendation.
+    for (const it of result.iterations) {
+      expect(it.recommendedAllocation.length).toBe(result.strategy.rolloutOrder.length);
+      for (const a of it.recommendedAllocation) expect(a.dailyBudget).toBeLessThanOrEqual(50);
+    }
   });
 
   it("is fully deterministic across runs", async () => {

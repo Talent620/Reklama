@@ -12,3 +12,7 @@ export { buildReport } from "./reporting";
 export { runGrowthLoop } from "./orchestrator";
 export type { RunConfig, RunResult, LoopIteration } from "./orchestrator";
 export { getAdapter, listAdapters } from "./channels/registry";
+export { thompsonAllocate, betaSample } from "./bandit";
+export type { BanditArm, BanditAllocation, BanditOptions } from "./bandit";
+export { CHANNEL_API_SPECS, getApiSpec } from "./channels/api-specs";
+export type { ChannelApiSpec } from "./channels/api-specs";

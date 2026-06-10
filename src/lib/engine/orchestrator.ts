@@ -12,6 +12,7 @@
 import type {
   Analysis,
   Brief,
+  ChannelId,
   CreativeVariant,
   DerivedMetrics,
   LandingPage,
@@ -29,6 +30,8 @@ import { publishCampaigns, type PublishPlanResult } from "./publish";
 import { derive, mergeSnapshots, simulatePeriod } from "./monitoring";
 import { optimize } from "./optimization";
 import { buildReport } from "./reporting";
+import { thompsonAllocate, type BanditAllocation, type BanditArm } from "./bandit";
+import { dailyBudget } from "./brief";
 
 export interface RunConfig {
   baseUrl?: string;
@@ -45,6 +48,8 @@ export interface LoopIteration {
   index: number;
   metrics: DerivedMetrics[];
   optimization: OptimizationResult;
+  /** Budgeted-Thompson-sampling reallocation recommendation for next period. */
+  recommendedAllocation: BanditAllocation[];
 }
 
 export interface RunResult {
@@ -102,7 +107,17 @@ export async function runGrowthLoop(input: unknown, config: RunConfig = {}): Pro
     }
     const metrics = [...cumulative.values()].map(derive);
     const optimization = optimize({ strategy, metrics, maxDailyBudget: cfg.maxDailyBudget });
-    iterations.push({ index: i, metrics, optimization });
+
+    // Research-backed reallocation: roll metrics up to per-channel arms and let
+    // a budgeted Thompson-sampling bandit propose next period's budget split.
+    const arms = toBanditArms(metrics, strategy.rolloutOrder);
+    const recommendedAllocation = thompsonAllocate(arms, {
+      totalBudget: Math.min(dailyBudget(brief), cfg.maxDailyBudget * arms.length),
+      maxPerChannel: cfg.maxDailyBudget,
+      seed: `${cfg.seed}:${brief.id}:bandit:${i}`,
+    });
+
+    iterations.push({ index: i, metrics, optimization, recommendedAllocation });
     if (optimization.converged) {
       converged = true;
       break;
@@ -114,4 +129,16 @@ export async function runGrowthLoop(input: unknown, config: RunConfig = {}): Pro
   const report = buildReport(strategy, finalMetrics);
 
   return { brief, analysis, strategy, creatives, landingPages, publish, iterations, report, converged };
+}
+
+/** Roll per-variant metrics up to one bandit arm per channel. */
+function toBanditArms(metrics: DerivedMetrics[], channels: ChannelId[]): BanditArm[] {
+  return channels.map((channel) => {
+    const rows = metrics.filter((m) => m.channel === channel);
+    const clicks = rows.reduce((s, m) => s + m.clicks, 0);
+    const conversions = rows.reduce((s, m) => s + m.conversions, 0);
+    const spend = rows.reduce((s, m) => s + m.spend, 0);
+    const cpc = clicks > 0 ? spend / clicks : 1;
+    return { channel, conversions, clicks, cpc };
+  });
 }

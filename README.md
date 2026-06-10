@@ -130,9 +130,26 @@ structure, metric derivation, optimization safety rails, reporting, and two
 end-to-end orchestrator runs (including a determinism check). CI
 (`.github/workflows/ci.yml`) runs typecheck + tests + build on every push.
 
+## Research-backed design
+
+See [`docs/RESEARCH.md`](docs/RESEARCH.md) for the cited research behind the
+build. Highlights now in the codebase:
+
+- **Budgeted Thompson-sampling allocator** (`engine/bandit.ts`) — channels are
+  arms with Beta reward / CPC cost posteriors; budget share ∝ win frequency, so
+  the loop explores new channels and exploits winners while respecting a hard
+  per-channel ceiling. Based on Xia et al. (IJCAI 2015) and multichannel
+  combinatorial-bandit work. Surfaced as `iteration.recommendedAllocation`.
+- **Concrete official-API specs** (`channels/api-specs.ts`) — real endpoints,
+  auth models, and resource hierarchies for Meta / Google / TikTok / LinkedIn,
+  so `publishLive` is a fill-in-the-blanks, not a research project.
+- **Google Consent Mode v2 gate** on landing pages — deny-by-default, consent
+  banner, and `ad_user_data` / `ad_personalization` signals, per EEA rules.
+
 ## Roadmap
 
-- Wire concrete official-API clients into the channel adapters (`publishLive`).
+- Wire concrete official-API clients into the channel adapters (`publishLive`)
+  against the specs in `channels/api-specs.ts` — start with Meta.
 - Persist every loop iteration and optimise against real historical data.
-- Render landing pages as live Next.js routes from the `LandingPage` spec.
+- Swap the demo consent banner for a certified CMP.
 - Multi-model AI roles (separate strategy/copy/creative/QA models).
