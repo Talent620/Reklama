@@ -32,10 +32,28 @@ Benchmarki monetyzacji reklamami (AdMob, eCPM):
   vs ruch globalny. Szacunki przychodu licz od realnego DAU i liczby wyświetleń/użytkownika,
   nie od pobrań.
 
+Retencja i konwersja (mediany rynkowe — licz od nich, nie od marzeń):
+- Retencja: D1 26%, D7 13%, D30 7%. Po miesiącu zostaje ~7% instalujących.
+- Freemium: tylko ~2.1% pobrań staje się płacącymi (D35); hard paywall ~10.7%
+  pobrań, ale mniej instalacji. Download->trial 3.7-8.9%; trial->paid 38-54%.
+- 55% anulowań triala następuje w DNIU 0 — pierwsza sesja musi dowieźć wartość.
+- Subskrypcje tygodniowe tracą 65% użytkowników w 30 dni; roczne trzymają najlepiej.
+
 Wnioski monetyzacyjne:
 - Same bannery rzadko utrzymują aplikację — preferuj rewarded/interstitial + IAP/subskrypcję.
 - Subskrypcje: typowe punkty cenowe 2.99-9.99 USD/mies.; trial 3-7 dni podnosi konwersję.
-- Google bierze 15% prowizji do 1 mln USD przychodu rocznie (program Small Business)."""
+- Google bierze 15% prowizji do 1 mln USD przychodu rocznie (program Small Business).
+
+BRUTALNA PRAWDA O DYSTRYBUCJI (najważniejszy czynnik zarobku):
+- Większość aplikacji zarabia ~0 USD, bo nikt ich nie znajduje — wąskim gardłem
+  jest pozyskanie użytkowników, nie kod. Mediana udanej aplikacji indie: 1-5 tys.
+  USD/mies.; topowe nisze (produktywność, zdrowie, narzędzia kreatywne) 50 tys.+.
+- ASO to absolutne minimum, ale samo nie wygeneruje popytu. Każda nisza MUSI mieć
+  zidentyfikowany kanał pozyskania: frazy o realnym wolumenie wyszukiwań w Play,
+  istniejące społeczności (Reddit/FB/Discord), short-form video (TikTok/Reels/Shorts),
+  SEO/web companion albo płatny UA z dodatnim ROAS.
+- Odrzucaj nisze, w których nie umiesz wskazać, SKĄD przyjdzie pierwsze
+  10 000 instalacji."""
 
 CHECKLIST = [
     ("Konto Google Play Developer", "Jednorazowa opłata 25 USD; konto firmowe omija wymóg testerów."),

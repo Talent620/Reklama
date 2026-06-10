@@ -22,3 +22,10 @@ reklama = "reklama.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["reklama*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]

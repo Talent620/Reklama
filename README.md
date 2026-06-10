@@ -68,6 +68,10 @@ reklama listing --prompt out/prompt-moja-apka.json
 # 4. Checklista zgodności przed publikacją
 reklama wymogi
 
+# 4b. Realny szacunek przychodu (pesymistyczny/realistyczny/optymistyczny)
+reklama kalkulator --installs 10000 --model hybryda --cena 4.99
+reklama kalkulator --installs 10000 --model subskrypcja --cena 7.99 --hard-paywall
+
 # 5. Publikacja gotowego AAB wraz z opisami sklepu
 reklama publish --package com.firma.app --aab ./app-release.aab \
     --track internal --notes "Pierwsza wersja" \
@@ -123,6 +127,39 @@ Pełną checklistę wyświetla komenda `reklama wymogi`. Najważniejsze:
   rewarded ~18–45 USD — analiza nisz używa tych widełek do urealnienia szacunków
   przychodu. ([Playwire](https://www.playwire.com/blog/admob-ecpm-benchmarks-what-publishers-should-expect), [Tenjin](https://tenjin.com/blog/ad-mon-gaming-2026/))
 
+### Co realnie decyduje o zarobku (a nie sam kod)
+
+Research pokazuje twardą prawdę: **większość aplikacji zarabia ~0 USD, bo nikt ich nie
+znajduje** — wąskim gardłem jest pozyskanie użytkowników, nie napisanie kodu. Dlatego:
+
+- **Retencja jest niska:** mediany D1 26% / D7 13% / D30 7% — po miesiącu zostaje ~7%
+  instalujących. ([Lovable](https://lovable.dev/guides/what-is-a-good-retention-rate-for-an-app))
+- **Konwersja na płacących jest niska:** freemium zamienia ~2,1% pobrań w płacących (D35),
+  twardy paywall ~10,7%. 55% anulowań triala dzieje się w dniu 0 — pierwsza sesja musi
+  dowieźć wartość. ([RevenueCat](https://www.revenuecat.com/state-of-subscription-apps-2025/), [Adapty](https://adapty.io/blog/trial-conversion-rates-for-in-app-subscriptions/))
+- **Mediana udanej aplikacji indie:** 1–5 tys. USD/mies.; topowe nisze 50 tys.+.
+  ([Fungies](https://fungies.io/indie-developer-market-analysis-2026/))
+
+Narzędzie wyciąga z tego praktyczne wnioski:
+1. **Analiza wymaga kanału pozyskania** — każda nisza musi wskazać, skąd przyjdzie
+   pierwsze 10 000 instalacji (frazy ASO z wolumenem, społeczności, short-form video, SEO);
+   nisze bez kanału są odrzucane.
+2. **Prompt wymusza mechaniki retencji** — onboarding do pierwszej wartości w <60 s,
+   powiadomienia, powód codziennego powrotu, paywall w szczycie wartości.
+3. **`reklama kalkulator`** liczy realny przychód od instalacji w dół (retencja → DAU →
+   reklamy + subskrypcje po prowizji Google), w trzech scenariuszach.
+
+## Testy
+
+```bash
+pip install pytest          # lub: pip install -e ".[dev]"
+pytest                      # 47 testów, w pełni offline (mocki API)
+```
+
+Pokrycie: kalkulator ekonomii, modele i limity sklepu, parser buildera + ochrona
+przed path traversal, sekwencja wywołań publishera (insert→upload→track→commit),
+dry-run, sprzątanie edycji przy błędzie, zapis/odczyt artefaktów, wczytywanie konfiguracji.
+
 ---
 
 ## Architektura
@@ -134,6 +171,7 @@ reklama/
 ├── builder.py           # Etap 2.5: auto-budowa kodu aplikacji z promptu (opcjonalna)
 ├── aso.py               # Etap 2.7: karta sklepu (ASO) + polityka prywatności
 ├── knowledge.py         # baza wiedzy: wymogi Google Play i benchmarki eCPM (2026)
+├── economics.py         # kalkulator realnych przychodów (retencja/konwersja/eCPM)
 ├── publisher.py         # Etap 3: upload AAB + opisów sklepu (androidpublisher v3)
 ├── pipeline / cli.py    # orkiestracja i interfejs CLI
 ├── _llm.py              # warstwa nad Anthropic SDK (model flagowy)

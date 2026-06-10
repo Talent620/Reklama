@@ -8,6 +8,7 @@ Komendy:
     reklama build     --prompt out/prompt-x.json   # zbuduj kod z zapisanego promptu
     reklama listing   --prompt out/prompt-x.json   # karta sklepu (ASO) + polityka prywatności
     reklama wymogi                       # checklista zgodności Google Play
+    reklama kalkulator --installs 10000 --model hybryda --cena 4.99
     reklama publish   --package ... --aab app.aab --track internal \
                       --listing out/listing-x.json   # AAB + opisy sklepu w jednej edycji
 """
@@ -44,6 +45,12 @@ def _print_report(report: OpportunityReport) -> None:
             o.szac_miesieczny_przychod_usd, o.poziom_konkurencji, o.trudnosc_wykonania,
         )
     console.print(table)
+    best = report.best()
+    if best.kanaly_pozyskania:
+        console.print(
+            f"[bold]Kanały pozyskania ({best.nazwa}):[/bold] "
+            + "; ".join(best.kanaly_pozyskania)
+        )
 
 
 def cmd_analyze(args: argparse.Namespace) -> int:
@@ -234,6 +241,42 @@ def cmd_listing(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_kalkulator(args: argparse.Namespace) -> int:
+    from . import economics
+
+    wyniki = economics.scenariusze(
+        args.installs,
+        model=args.model,
+        cena_mies_usd=args.cena,
+        hard_paywall=args.hard_paywall,
+    )
+    table = Table(
+        title=f"Realny szacunek przychodu — model: {args.model}"
+              + (f", cena {args.cena:.2f} USD/mies." if args.model != "reklamy" else ""),
+        show_lines=True,
+    )
+    table.add_column("Scenariusz", style="bold")
+    table.add_column("Instalacje/mies.", justify="right")
+    table.add_column("DAU", justify="right")
+    table.add_column("Subskrybenci", justify="right")
+    table.add_column("Reklamy USD", justify="right")
+    table.add_column("Subskrypcje USD", justify="right")
+    table.add_column("RAZEM USD/mies.", justify="right", style="bold green")
+    for s in wyniki:
+        table.add_row(
+            s.scenariusz, f"{s.instalacje_mies:,}", f"{s.dau:,}", f"{s.subskrybenci:,}",
+            f"{s.przychod_reklamy:,.0f}", f"{s.przychod_subskrypcje:,.0f}",
+            f"{s.przychod_netto:,.0f}",
+        )
+    console.print(table)
+    console.print(
+        "[dim]Mediany rynkowe: D1 26% / D7 13% / D30 7%; freemium ~2.1% płacących; "
+        "prowizja Google 15% na subskrypcjach. Najwięcej zmienia liczba instalacji — "
+        "czyli kanał pozyskania.[/dim]"
+    )
+    return 0
+
+
 def cmd_wymogi(_args: argparse.Namespace) -> int:
     from .knowledge import CHECKLIST
 
@@ -288,6 +331,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     w = sub.add_parser("wymogi", help="Checklista zgodności publikacji w Google Play")
     w.set_defaults(func=cmd_wymogi)
+
+    k = sub.add_parser("kalkulator", help="Realny szacunek przychodu (benchmarki 2026)")
+    k.add_argument("--installs", type=int, required=True, help="Instalacje miesięcznie")
+    k.add_argument("--model", default="hybryda", choices=["reklamy", "subskrypcja", "hybryda"])
+    k.add_argument("--cena", type=float, default=4.99, help="Cena subskrypcji USD/mies.")
+    k.add_argument("--hard-paywall", action="store_true",
+                   help="Twardy paywall (konwersja ~10.7%% zamiast ~2.1%%)")
+    k.set_defaults(func=cmd_kalkulator)
 
     pub = sub.add_parser("publish", help="Wgraj gotowy AAB do Google Play")
     pub.add_argument("--package", required=True, help="applicationId, np. com.firma.app")

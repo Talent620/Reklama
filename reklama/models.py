@@ -39,6 +39,11 @@ class AppOpportunity(BaseModel):
     dlaczego_dochodowe: str = Field(description="Dlaczego akurat to ma szansę zarobić — uzasadnienie popytu")
     kluczowe_funkcje: list[str] = Field(description="3-7 kluczowych funkcji MVP")
     ryzyka: list[str] = Field(description="Najważniejsze ryzyka i przeszkody")
+    kanaly_pozyskania: list[str] = Field(
+        default_factory=list,
+        description="2-4 KONKRETNE kanały, skąd przyjdą instalacje (frazy ASO z wolumenem, "
+                    "społeczności, short-form video, SEO) — bez tego nisza nie zarobi",
+    )
 
     wynik: int = Field(
         ge=0, le=100,

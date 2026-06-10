@@ -42,7 +42,10 @@ Dla każdej niszy przeszukaj sieć i ustal:
 - poziom konkurencji i czym można się wyróżnić,
 - konkretny model i wysokość zarobku,
 - trudność wykonania jako MVP,
-- kluczowe funkcje i główne ryzyka.
+- kluczowe funkcje i główne ryzyka,
+- KONKRETNE kanały pozyskania użytkowników (frazy wyszukiwane w Play, społeczności,
+  short-form video, SEO) — skąd realnie przyjdzie pierwsze 10 000 instalacji;
+  niszę bez wiarygodnego kanału pozyskania odrzuć.
 
 Na końcu wypisz zwięzłe, uporządkowane wnioski — będą podstawą do raportu."""
 

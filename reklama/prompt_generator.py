@@ -28,6 +28,9 @@ Prompt, który tworzysz, musi:
 - zawierać pełną specyfikację: ekrany, nawigację, modele danych, logikę, stany puste/błędów,
 - precyzyjnie opisać monetyzację (np. integracja AdMob z konkretnymi miejscami reklam,
   ekran subskrypcji / IAP) i zgodność z politykami Google Play oraz wymóg polityki prywatności,
+- wymusić mechaniki retencji oparte na danych: onboarding doprowadzający do pierwszej
+  wartości w <60 sekund (55% anulowań triala to dzień 0), powiadomienia/przypomnienia,
+  streaki lub inny powód codziennego powrotu, paywall pokazywany w szczycie wartości,
 - wymusić konkretny stack, strukturę projektu, jakość kodu, brak placeholderów/TODO,
 - wymagać, by wynik dał się zbudować do podpisanego AAB (instrukcje build/release),
 - zawierać metadane do sklepu: tytuł, krótki/długi opis, słowa kluczowe ASO, kategorię.
