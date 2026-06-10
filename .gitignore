@@ -1,0 +1,33 @@
+# Sekrety i konfiguracja
+.env
+*.env
+service-account*.json
+play-credentials*.json
+*.keystore
+*.jks
+*.aab
+*.apk
+
+# Wygenerowane artefakty
+out/
+output/
+generated/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
