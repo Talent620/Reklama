@@ -1,0 +1,56 @@
+========================================================
+  REKLAMA GATEWAY - SZYBKI START (Windows)
+========================================================
+
+Masz dwie wersje:
+  * WSPOLNA  - dla pracownikow (publiczny link + wspolne haslo)
+  * PRYWATNA - tylko dla Ciebie (zdalnie z domu, przez Tailscale)
+
+--------------------------------------------------------
+KROK 1 - INSTALACJA (raz)
+--------------------------------------------------------
+1. Rozpakuj ten folder w dowolnym miejscu (np. C:\Reklama).
+2. Kliknij prawym na folderze -> "Otworz w Terminalu"
+   (lub uruchom PowerShell i przejdz do tego folderu).
+3. Wpisz:
+
+       .\scripts\setup.ps1
+
+   To zainstaluje wszystko i WYGENERUJE Twoje wspolne haslo
+   (zapamietaj je - pojawi sie na ekranie).
+
+4. Otworz plik .env i w linii UPSTREAM_URL wpisz adres
+   swojego narzedzia, np.:
+
+       UPSTREAM_URL=http://127.0.0.1:3000
+
+--------------------------------------------------------
+KROK 2A - WERSJA WSPOLNA (dla pracownikow)
+--------------------------------------------------------
+       .\scripts\run.ps1
+
+   Po chwili pojawi sie LINK + HASLO (tez w pliku share-info.txt).
+   Wyslij je pracownikom - otwieraja link, wpisuja haslo, gotowe.
+
+--------------------------------------------------------
+KROK 2B - WERSJA PRYWATNA (tylko Ty, z domu)
+--------------------------------------------------------
+       .\scripts\run-private.ps1
+
+   Zaloguj sie swoim kontem (raz). Adres prywatny zapisze sie
+   w pliku private-access.txt. Na telefonie/laptopie zainstaluj
+   Tailscale, zaloguj sie TYM SAMYM kontem i otworz ten adres.
+
+--------------------------------------------------------
+KROK 3 - PELNA AUTONOMIA (start sam z Windows)
+--------------------------------------------------------
+   Wersja wspolna:   .\scripts\install-autostart.ps1
+   Wersja prywatna:  .\scripts\install-autostart.ps1 -Mode private
+
+   Od teraz serwer wstaje sam po wlaczeniu komputera
+   i sam restartuje sie po awarii.
+
+--------------------------------------------------------
+Wiecej szczegolow: plik README.md
+Problemy: zajrzyj do folderu logs\
+========================================================

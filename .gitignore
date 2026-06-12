@@ -1,0 +1,19 @@
+# Sekrety i konfiguracja lokalna - NIGDY nie commitujemy
+.env
+share-info.txt
+current-url.txt
+
+# Pobierane binarki
+cloudflared.exe
+bin/
+
+# Zaleznosci
+node_modules/
+
+# Logi
+logs/
+*.log
+
+# System
+Thumbs.db
+.DS_Store
