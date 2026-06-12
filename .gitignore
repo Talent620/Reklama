@@ -1,7 +1,13 @@
 # Sekrety i konfiguracja lokalna - NIGDY nie commitujemy
 .env
 share-info.txt
+private-access.txt
 current-url.txt
+
+# Pliki generowane przy uruchomieniu
+UDOSTEPNIJ-PRACOWNIKOM.html
+UDOSTEPNIJ-PRYWATNY.html
+RAPORT-POLACZEN.html
 
 # Pobierane binarki
 cloudflared.exe

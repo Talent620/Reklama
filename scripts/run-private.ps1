@@ -111,6 +111,15 @@ Wygenerowano: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 "@
 Set-Content -Path $ShareInfo -Value $content -Encoding UTF8
 
+# Ladna strona z kodem QR (wygodne zalogowanie z telefonu) - otwiera sie sama.
+if ($privateUrl) {
+  $sharePage = Join-Path $Root "UDOSTEPNIJ-PRYWATNY.html"
+  try {
+    node "src/share-page.js" --mode private --url $privateUrl --password $Password --out $sharePage | Out-Null
+    Start-Process $sharePage
+  } catch { Write-Host "    (Nie udalo sie wygenerowac strony QR: $($_.Exception.Message))" -ForegroundColor DarkYellow }
+}
+
 Write-Host "`n============================================" -ForegroundColor Green
 Write-Host "   GOTOWE - dostep PRYWATNY (tylko Ty):" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green

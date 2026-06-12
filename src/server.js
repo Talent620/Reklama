@@ -21,6 +21,29 @@ const config = require('./config');
 const auth = require('./auth');
 
 const VIEWS = path.join(__dirname, 'views');
+const LOG_DIR = path.join(__dirname, '..', 'logs');
+const ACCESS_LOG = path.join(LOG_DIR, 'access.log');
+
+try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch {}
+
+// --- Rejestr polaczen (kto i kiedy sie laczyl) ------------------------------
+// Zapisujemy zdarzenia w formacie JSON-lines do logs/access.log.
+// Dostep jest anonimowy, wiec logujemy adres IP + czas, bez danych osobowych.
+
+function logEvent(type, req, extra = {}) {
+  const entry = {
+    ts: new Date().toISOString(),
+    type,
+    ip: (req.ip || req.connection?.remoteAddress || 'unknown').replace('::ffff:', ''),
+    path: req.originalUrl || req.url || '',
+    ua: (req.headers['user-agent'] || '').slice(0, 200),
+    ...extra,
+  };
+  fs.appendFile(ACCESS_LOG, JSON.stringify(entry) + '\n', () => {});
+}
+
+// Pomijamy zasoby statyczne (css/js/grafika) - logujemy realne wejscia.
+const ASSET_RE = /\.(css|js|mjs|png|jpe?g|gif|svg|ico|webp|woff2?|ttf|eot|map)$/i;
 
 // --- Walidacja startowa -----------------------------------------------------
 
@@ -100,11 +123,13 @@ app.post('/login', (req, res) => {
   const password = (req.body && req.body.password) || '';
   if (auth.passwordMatches(password)) {
     auth.clearAttempts(ip);
+    logEvent('login', req); // udane logowanie
     res.setHeader('Set-Cookie', auth.buildSessionCookie());
     return res.redirect('/');
   }
 
   auth.recordFailure(ip);
+  logEvent('login_failed', req); // nieudana proba
   return render(res, 'login.html', {
     BRAND: config.brandName,
     ERROR: errorBlock('Nieprawidlowe haslo.'),
@@ -126,6 +151,12 @@ app.use((req, res, next) => {
     return res.status(401).type('text').send('Unauthorized');
   }
   return res.redirect('/login');
+});
+
+// Rejestrujemy realne wejscia zalogowanych (pomijamy zasoby statyczne).
+app.use((req, res, next) => {
+  if (!ASSET_RE.test(req.path)) logEvent('visit', req);
+  next();
 });
 
 // --- Za bramka: proxy / pliki statyczne / strona powitalna ------------------

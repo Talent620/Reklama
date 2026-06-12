@@ -1,56 +1,55 @@
 ========================================================
-  REKLAMA GATEWAY - SZYBKI START (Windows)
+  REKLAMA GATEWAY - WSZYSTKO PRZEZ DWUKLIK
 ========================================================
 
-Masz dwie wersje:
-  * WSPOLNA  - dla pracownikow (publiczny link + wspolne haslo)
-  * PRYWATNA - tylko dla Ciebie (zdalnie z domu, przez Tailscale)
+Nie musisz nic wpisywac w konsoli. Po prostu klikaj pliki
+po kolei. Numery pokazuja kolejnosc.
 
 --------------------------------------------------------
-KROK 1 - INSTALACJA (raz)
+  KROK 1: kliknij dwa razy:   "1 - INSTALACJA.bat"
 --------------------------------------------------------
-1. Rozpakuj ten folder w dowolnym miejscu (np. C:\Reklama).
-2. Kliknij prawym na folderze -> "Otworz w Terminalu"
-   (lub uruchom PowerShell i przejdz do tego folderu).
-3. Wpisz:
+  - zainstaluje wszystko, co potrzebne,
+  - WYGENERUJE Twoje haslo (zapisz je z ekranu),
+  - pobierze tunel.
+  Zrob to tylko RAZ.
 
-       .\scripts\setup.ps1
-
-   To zainstaluje wszystko i WYGENERUJE Twoje wspolne haslo
-   (zapamietaj je - pojawi sie na ekranie).
-
-4. Otworz plik .env i w linii UPSTREAM_URL wpisz adres
-   swojego narzedzia, np.:
-
-       UPSTREAM_URL=http://127.0.0.1:3000
+  Potem otworz plik ".env" (np. Notatnikiem) i wpisz adres
+  swojego narzedzia, np.:
+      UPSTREAM_URL=http://127.0.0.1:3000
+  (Jesli nie wiesz - zostaw puste, zobaczysz strone testowa.)
 
 --------------------------------------------------------
-KROK 2A - WERSJA WSPOLNA (dla pracownikow)
+  KROK 2: wybierz wersje i kliknij:
 --------------------------------------------------------
-       .\scripts\run.ps1
+  "2 - START dla pracownikow.bat"
+       -> pojawi sie LINK + HASLO i otworzy sie strona
+          z KODEM QR. Wyslij link pracownikom albo pokaz
+          im kod QR do zeskanowania telefonem.
 
-   Po chwili pojawi sie LINK + HASLO (tez w pliku share-info.txt).
-   Wyslij je pracownikom - otwieraja link, wpisuja haslo, gotowe.
+  "3 - START prywatny (tylko ja).bat"
+       -> dostep wylacznie dla Ciebie, zdalnie z domu
+          (przez prywatna siec Tailscale).
 
---------------------------------------------------------
-KROK 2B - WERSJA PRYWATNA (tylko Ty, z domu)
---------------------------------------------------------
-       .\scripts\run-private.ps1
-
-   Zaloguj sie swoim kontem (raz). Adres prywatny zapisze sie
-   w pliku private-access.txt. Na telefonie/laptopie zainstaluj
-   Tailscale, zaloguj sie TYM SAMYM kontem i otworz ten adres.
+  WAZNE: okno, ktore sie otworzy, ZOSTAW OTWARTE.
+  Serwer dziala dopoki okno jest otwarte.
 
 --------------------------------------------------------
-KROK 3 - PELNA AUTONOMIA (start sam z Windows)
+  KROK 3 (opcjonalnie): zeby wstawal SAM z Windows
 --------------------------------------------------------
-   Wersja wspolna:   .\scripts\install-autostart.ps1
-   Wersja prywatna:  .\scripts\install-autostart.ps1 -Mode private
-
-   Od teraz serwer wstaje sam po wlaczeniu komputera
-   i sam restartuje sie po awarii.
+  "4 - Wlacz autostart (pracownicy).bat"
+  "5 - Wlacz autostart (prywatny).bat"
+       -> serwer bedzie uruchamial sie sam po wlaczeniu
+          komputera i sam wstanie po awarii.
+  "Wylacz autostart.bat"  -> cofa autostart.
 
 --------------------------------------------------------
-Wiecej szczegolow: plik README.md
-Problemy: zajrzyj do folderu logs\
+  PODGLAD: kto sie laczyl
+--------------------------------------------------------
+  "6 - Pokaz kto sie laczyl.bat"
+       -> otworzy ladny raport: ile bylo wejsc, logowan,
+          jakie adresy, kiedy ostatnio.
+
+========================================================
+  Wiecej szczegolow:  README.md
+  Problemy:           folder  logs\
 ========================================================

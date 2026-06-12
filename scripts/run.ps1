@@ -129,6 +129,13 @@ if ([string]::IsNullOrWhiteSpace($TunnelToken)) {
 
 if ($publicUrl) {
   Write-ShareInfo $publicUrl
+  # Ladna strona z kodem QR + przyciskami "Kopiuj" - otwiera sie sama.
+  $sharePage = Join-Path $Root "UDOSTEPNIJ-PRACOWNIKOM.html"
+  try {
+    node "src/share-page.js" --mode shared --url $publicUrl --password $Password --out $sharePage | Out-Null
+    Start-Process $sharePage
+  } catch { Write-Host "    (Nie udalo sie wygenerowac strony QR: $($_.Exception.Message))" -ForegroundColor DarkYellow }
+
   Write-Host ""
   Write-Host "============================================" -ForegroundColor Green
   Write-Host "   GOTOWE - rozdaj to pracownikom:" -ForegroundColor Green
@@ -136,7 +143,8 @@ if ($publicUrl) {
   Write-Host ("   Link  : " + $publicUrl) -ForegroundColor Yellow
   Write-Host ("   Haslo : " + $Password)  -ForegroundColor Yellow
   Write-Host ""
-  Write-Host "   (Zapisane takze w pliku: share-info.txt)" -ForegroundColor DarkGray
+  Write-Host "   Otwarto strone z kodem QR: UDOSTEPNIJ-PRACOWNIKOM.html" -ForegroundColor DarkGray
+  Write-Host "   (Link i haslo tez w pliku: share-info.txt)" -ForegroundColor DarkGray
 } else {
   Write-Host "Tunel uruchomiony. Adres znajdziesz w logach lub (tryb nazwany) na Twojej domenie." -ForegroundColor Cyan
 }

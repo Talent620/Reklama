@@ -14,6 +14,34 @@ Obie wersje korzystaja z tej samej bramy i tego samego pliku `.env`. Mozesz miec
 
 ---
 
+## Najprosciej: pliki do dwuklika (bez konsoli)
+
+W glownym folderze sa gotowe pliki `.bat` — wystarczy kliknac dwa razy:
+
+| Plik | Co robi |
+|---|---|
+| `1 - INSTALACJA.bat` | instaluje wszystko i generuje haslo (raz) |
+| `2 - START dla pracownikow.bat` | uruchamia wersje wspolna; pokazuje link + haslo i **otwiera strone z kodem QR** |
+| `3 - START prywatny (tylko ja).bat` | uruchamia wersje prywatna (Tailscale) |
+| `4 - Wlacz autostart (pracownicy).bat` | serwer wstaje sam z Windows (wersja wspolna) |
+| `5 - Wlacz autostart (prywatny).bat` | autostart wersji prywatnej |
+| `6 - Pokaz kto sie laczyl.bat` | otwiera **raport polaczen** (wejscia, logowania, adresy) |
+| `Wylacz autostart.bat` | cofa autostart |
+
+> Pelna sciezka: zacznij od `START-TUTAJ.txt`.
+
+### Kod QR do udostepniania
+Po starcie wersji wspolnej powstaje strona `UDOSTEPNIJ-PRACOWNIKOM.html` z linkiem,
+haslem (przyciski „Kopiuj") i **kodem QR** — pracownik moze go po prostu zeskanowac
+telefonem. Kod QR generowany jest lokalnie, nic nie jest wysylane na zewnatrz.
+
+### Raport „kto sie laczyl"
+Brama zapisuje kazde wejscie i logowanie do `logs\access.log` (anonimowo: adres IP +
+czas, bez danych osobowych). Plik `6 - Pokaz kto sie laczyl.bat` tworzy z tego ladny
+`RAPORT-POLACZEN.html`: liczba wejsc, logowan, unikalne adresy i ostatnie zdarzenia.
+
+---
+
 ## Jak to dziala (w skrocie)
 
 ```
