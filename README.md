@@ -14,9 +14,19 @@ Obie wersje korzystaja z tej samej bramy i tego samego pliku `.env`. Mozesz miec
 
 ---
 
-## Najprosciej: pliki do dwuklika (bez konsoli)
+## Najprosciej: jedno MENU (polecane dla osob nietechnicznych)
 
-W glownym folderze sa gotowe pliki `.bat` — wystarczy kliknac dwa razy:
+Kliknij dwa razy **`MENU - kliknij tutaj.bat`**. Otworzy sie lista opcji
+(instalacja, ustawienia, trzy tryby udostepniania, autostart, raport) — wybierasz
+numer i Enter. Kazda pozycja ma opis, co robi. Gdy cos nie dziala — wybierz
+opcje **1 (ZAINSTALUJ / NAPRAW)**, mozna powtarzac bez obaw.
+
+Konfigurator (opcja 2 w menu) pyta prostym jezykiem, co chcesz udostepnic, i sam
+zapisuje ustawienia — **nie trzeba recznie edytowac pliku `.env`**.
+
+### Alternatywnie: pojedyncze pliki do dwuklika
+
+Jesli wolisz, sa tez osobne pliki `.bat` — wystarczy kliknac dwa razy:
 
 | Plik | Co robi |
 |---|---|

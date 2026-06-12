@@ -19,31 +19,85 @@ function Write-Step($msg)  { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function Write-Ok($msg)    { Write-Host "    [OK] $msg" -ForegroundColor Green }
 function Write-Warn2($msg) { Write-Host "    [!] $msg" -ForegroundColor Yellow }
 
+# Odswiezenie zmiennej PATH w biezacym oknie (po instalacji Node nie trzeba
+# zamykac okna - program od razu sie znajdzie).
+function Update-SessionPath {
+  $machine = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+  $user    = [System.Environment]::GetEnvironmentVariable('Path', 'User')
+  $env:Path = (@($machine, $user) | Where-Object { $_ }) -join ';'
+}
+
 Write-Host "============================================" -ForegroundColor Magenta
 Write-Host "   REKLAMA GATEWAY - instalacja" -ForegroundColor Magenta
 Write-Host "============================================" -ForegroundColor Magenta
+Write-Host "Usiadz wygodnie - zaraz wszystko zrobie za Ciebie." -ForegroundColor Gray
 
-# --- 1. Node.js -------------------------------------------------------------
-Write-Step "Sprawdzam Node.js"
+# --- 1. Node.js (silnik programu) -------------------------------------------
+Write-Step "Sprawdzam, czy jest zainstalowany Node.js (silnik programu)"
+Update-SessionPath
 $node = Get-Command node -ErrorAction SilentlyContinue
+
 if (-not $node) {
-  Write-Warn2 "Nie znaleziono Node.js."
-  $ans = Read-Host "Sprobowac zainstalowac przez winget? (t/n)"
-  if ($ans -match '^(t|tak|y|yes)$') {
-    winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
-    Write-Warn2 "Po instalacji ZAMKNIJ to okno PowerShell, otworz nowe i uruchom setup.ps1 ponownie."
-    exit 0
-  } else {
-    Write-Warn2 "Zainstaluj Node.js LTS ze strony https://nodejs.org i uruchom setup ponownie."
+  Write-Warn2 "Nie ma jeszcze Node.js - zainstaluje go teraz automatycznie."
+
+  $installed = $false
+
+  # Sposob 1: winget (wbudowany w nowsze Windows).
+  if (Get-Command winget -ErrorAction SilentlyContinue) {
+    Write-Host "    Instaluje przez Menedzer pakietow Windows (winget)..."
+    try {
+      winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements --silent
+      Update-SessionPath
+      if (Get-Command node -ErrorAction SilentlyContinue) { $installed = $true }
+    } catch { Write-Warn2 "winget nie dal rady, sprobuje inaczej." }
+  }
+
+  # Sposob 2: pobranie i instalacja oficjalnego instalatora MSI.
+  if (-not $installed) {
+    try {
+      $arch = if ([Environment]::Is64BitOperatingSystem) { 'x64' } else { 'x86' }
+      $msiUrl = "https://nodejs.org/dist/v20.18.0/node-v20.18.0-$arch.msi"
+      $msi = Join-Path $env:TEMP "nodejs-setup.msi"
+      Write-Host "    Pobieram instalator Node.js..."
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      Invoke-WebRequest -Uri $msiUrl -OutFile $msi -UseBasicParsing
+      Write-Host "    Instaluje Node.js (chwila cierpliwosci)..."
+      Start-Process msiexec.exe -ArgumentList "/i `"$msi`" /qn /norestart" -Wait
+      Update-SessionPath
+      if (Get-Command node -ErrorAction SilentlyContinue) { $installed = $true }
+    } catch { Write-Warn2 "Automatyczna instalacja sie nie powiodla." }
+  }
+
+  if (-not $installed) {
+    Write-Host ""
+    Write-Host "  Nie udalo sie zainstalowac Node.js automatycznie." -ForegroundColor Yellow
+    Write-Host "  Zrob to recznie - to proste:" -ForegroundColor Yellow
+    Write-Host "    1. Otworz strone:  https://nodejs.org" -ForegroundColor White
+    Write-Host "    2. Kliknij duzy zielony przycisk (wersja LTS) i zainstaluj (same Dalej)." -ForegroundColor White
+    Write-Host "    3. Potem kliknij plik '1 - INSTALACJA.bat' jeszcze raz." -ForegroundColor White
+    try { Start-Process "https://nodejs.org" } catch {}
     exit 1
   }
 }
-Write-Ok ("Node.js " + (node --version))
+Write-Ok ("Node.js dziala (" + (node --version) + ")")
 
-# --- 2. Zaleznosci npm ------------------------------------------------------
-Write-Step "Instaluje zaleznosci (npm install)"
-npm install --no-fund --no-audit
-Write-Ok "Zaleznosci zainstalowane."
+# --- 2. Zaleznosci programu -------------------------------------------------
+Write-Step "Instaluje czesci programu (to moze potrwac minute)"
+$npmOk = $false
+for ($try = 1; $try -le 3 -and -not $npmOk; $try++) {
+  try {
+    npm install --no-fund --no-audit
+    if ($LASTEXITCODE -eq 0) { $npmOk = $true } else { throw "npm zwrocil blad" }
+  } catch {
+    Write-Warn2 "Proba $try nie wyszla, probuje jeszcze raz..."
+    Start-Sleep -Seconds 3
+  }
+}
+if (-not $npmOk) {
+  Write-Host "  Nie udalo sie pobrac czesci programu (sprawdz internet) i kliknij plik 1 ponownie." -ForegroundColor Yellow
+  exit 1
+}
+Write-Ok "Czesci programu zainstalowane."
 
 # --- 3. Plik .env + sekrety -------------------------------------------------
 Write-Step "Konfiguruje plik .env"
@@ -95,30 +149,42 @@ if ([string]::IsNullOrWhiteSpace((Get-EnvValue "SESSION_SECRET"))) {
   Write-Ok "Sekret sesji juz ustawiony - zostawiam."
 }
 
-# --- 4. cloudflared ---------------------------------------------------------
-Write-Step "Pobieram cloudflared (tunel Cloudflare)"
+# --- 4. cloudflared (tunel do trybu dla pracownikow) ------------------------
+Write-Step "Pobieram tunel (potrzebny do udostepniania pracownikom)"
 $cf = Join-Path $Root "cloudflared.exe"
 if (Test-Path $cf) {
-  Write-Ok "cloudflared.exe juz jest."
+  Write-Ok "Tunel juz pobrany."
 } else {
   $url = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"
-  Write-Host "    Pobieram z: $url"
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  Invoke-WebRequest -Uri $url -OutFile $cf -UseBasicParsing
-  Write-Ok "Pobrano cloudflared.exe."
+  $cfOk = $false
+  for ($try = 1; $try -le 3 -and -not $cfOk; $try++) {
+    try {
+      Invoke-WebRequest -Uri $url -OutFile $cf -UseBasicParsing
+      if ((Test-Path $cf) -and ((Get-Item $cf).Length -gt 1000000)) { $cfOk = $true }
+    } catch {
+      Write-Warn2 "Proba $try nie wyszla, probuje jeszcze raz..."
+      Start-Sleep -Seconds 3
+    }
+  }
+  if ($cfOk) {
+    Write-Ok "Tunel pobrany."
+  } else {
+    Write-Warn2 "Nie udalo sie pobrac tunelu (sprawdz internet). Tryb 'tylko ja' i 'urzadzenie' i tak zadzialaja."
+    Write-Warn2 "Aby uzyc trybu dla pracownikow - kliknij plik 1 jeszcze raz pozniej."
+  }
 }
 
 # --- Podsumowanie -----------------------------------------------------------
 Write-Host "`n============================================" -ForegroundColor Green
-Write-Host "   GOTOWE! Instalacja zakonczona." -ForegroundColor Green
+Write-Host "   GOTOWE! Wszystko zainstalowane." -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "Twoje wspolne haslo dostepu:" -ForegroundColor White
+Write-Host "Twoje haslo (zapisz je gdzies):" -ForegroundColor White
 Write-Host ("    " + (Get-EnvValue "ACCESS_PASSWORD")) -ForegroundColor Yellow
 Write-Host ""
-Write-Host "Nastepne kroki:" -ForegroundColor White
-Write-Host "  1. (Opcjonalnie) Wpisz adres swojego narzedzia w .env -> UPSTREAM_URL"
-Write-Host "     np. UPSTREAM_URL=http://127.0.0.1:3000"
-Write-Host "  2. Uruchom serwer:               .\scripts\run.ps1"
-Write-Host "  3. Aby startowal sam z Windows:  .\scripts\install-autostart.ps1"
+Write-Host "Co dalej? To proste:" -ForegroundColor White
+Write-Host "  -> Zamknij to okno i kliknij dwa razy plik:" -ForegroundColor White
+Write-Host "       MENU - kliknij tutaj.bat" -ForegroundColor Cyan
+Write-Host "  Tam wybierzesz z listy, co chcesz zrobic. Program podpowie reszte." -ForegroundColor Gray
 Write-Host ""

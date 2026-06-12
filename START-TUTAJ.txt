@@ -1,55 +1,22 @@
 ========================================================
-  REKLAMA GATEWAY - WSZYSTKO PRZEZ DWUKLIK
+  REKLAMA - ZACZNIJ TUTAJ
 ========================================================
 
-Nie musisz nic wpisywac w konsoli. Po prostu klikaj pliki
-po kolei. Numery pokazuja kolejnosc.
+To naprawde proste. Zrob jedna rzecz:
 
---------------------------------------------------------
-  KROK 1: kliknij dwa razy:   "1 - INSTALACJA.bat"
---------------------------------------------------------
-  - zainstaluje wszystko, co potrzebne,
-  - WYGENERUJE Twoje haslo (zapisz je z ekranu),
-  - pobierze tunel.
-  Zrob to tylko RAZ.
+   >>>  Kliknij dwa razy plik:  "MENU - kliknij tutaj.bat"  <<<
 
-  Potem otworz plik ".env" (np. Notatnikiem) i wpisz adres
-  swojego narzedzia, np.:
-      UPSTREAM_URL=http://127.0.0.1:3000
-  (Jesli nie wiesz - zostaw puste, zobaczysz strone testowa.)
+Otworzy sie okno z LISTA opcji. Wpisujesz numer, Enter - gotowe.
 
---------------------------------------------------------
-  KROK 2: wybierz wersje i kliknij:
---------------------------------------------------------
-  "2 - START dla pracownikow.bat"
-       -> pojawi sie LINK + HASLO i otworzy sie strona
-          z KODEM QR. Wyslij link pracownikom albo pokaz
-          im kod QR do zeskanowania telefonem.
+Pierwszy raz:
+   1. W menu wpisz  1  (ZAINSTALUJ) - poczekaj na GOTOWE, zapisz haslo.
+   2. W menu wpisz  2  (USTAW) - odpowiedz na proste pytania.
+   3. W menu wybierz tryb:  3 = pracownicy,  4 = tylko ja,  5 = urzadzenie.
 
-  "3 - START prywatny (tylko ja).bat"
-       -> dostep wylacznie dla Ciebie, zdalnie z domu
-          (przez prywatna siec Tailscale).
+Gdy cos nie dziala:
+   W menu wpisz  1  jeszcze raz - to naprawia wiekszosc rzeczy.
 
-  WAZNE: okno, ktore sie otworzy, ZOSTAW OTWARTE.
-  Serwer dziala dopoki okno jest otwarte.
+Pelne, spokojne wyjasnienie wszystkiego znajdziesz w pliku:
+   INSTRUKCJA-PROSTA.txt
 
---------------------------------------------------------
-  KROK 3 (opcjonalnie): zeby wstawal SAM z Windows
---------------------------------------------------------
-  "4 - Wlacz autostart (pracownicy).bat"
-  "5 - Wlacz autostart (prywatny).bat"
-       -> serwer bedzie uruchamial sie sam po wlaczeniu
-          komputera i sam wstanie po awarii.
-  "Wylacz autostart.bat"  -> cofa autostart.
-
---------------------------------------------------------
-  PODGLAD: kto sie laczyl
---------------------------------------------------------
-  "6 - Pokaz kto sie laczyl.bat"
-       -> otworzy ladny raport: ile bylo wejsc, logowan,
-          jakie adresy, kiedy ostatnio.
-
-========================================================
-  Wiecej szczegolow:  README.md
-  Problemy:           folder  logs\
 ========================================================
