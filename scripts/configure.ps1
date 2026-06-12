@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - KONFIGURATOR (ustaw, co chcesz udostepnic)
+#  KLUCZYKI POZNAN MADRA GLOWA - KONFIGURATOR (ustaw, co chcesz udostepnic)
 #  Pyta prostym jezykiem i sam zapisuje ustawienia. Nie trzeba niczego
 #  edytowac recznie.
 # ============================================================================

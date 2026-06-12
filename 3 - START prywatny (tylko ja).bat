@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Reklama Gateway - START prywatny
+title Kluczyki Poznan madra glowa - START prywatny
 echo ============================================
 echo    URUCHAMIAM WERSJE PRYWATNA (tylko Ty)
 echo ============================================

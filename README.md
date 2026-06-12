@@ -1,4 +1,4 @@
-# Reklama Gateway
+# Kluczyki Poznań mądra głowa
 
 Autonomiczny serwer-brama na Windows, ktory udostepnia Twoje **narzedzie webowe**
 — bez konfiguracji routera, z automatycznym startem i restartem.
@@ -207,8 +207,8 @@ Aby serwer uruchamial sie **sam po kazdym zalogowaniu** i sam wstawal po awarii:
 
 Uruchomienie od razu, bez restartu:
 ```powershell
-Start-ScheduledTask -TaskName ReklamaGateway          # wspolna
-Start-ScheduledTask -TaskName ReklamaGatewayPrivate   # prywatna
+Start-ScheduledTask -TaskName KluczykiPoznan          # wspolna
+Start-ScheduledTask -TaskName KluczykiPoznanPrivate   # prywatna
 ```
 
 Wylaczenie autostartu:

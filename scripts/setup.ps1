@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - INSTALATOR (uruchom raz)
+#  KLUCZYKI POZNAN MADRA GLOWA - INSTALATOR (uruchom raz)
 #  Co robi:
 #    1. sprawdza Node.js (proponuje instalacje),
 #    2. instaluje zaleznosci npm,
@@ -28,7 +28,7 @@ function Update-SessionPath {
 }
 
 Write-Host "============================================" -ForegroundColor Magenta
-Write-Host "   REKLAMA GATEWAY - instalacja" -ForegroundColor Magenta
+Write-Host "   KLUCZYKI POZNAN MADRA GLOWA - instalacja" -ForegroundColor Magenta
 Write-Host "============================================" -ForegroundColor Magenta
 Write-Host "Usiadz wygodnie - zaraz wszystko zrobie za Ciebie." -ForegroundColor Gray
 

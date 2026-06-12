@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - WERSJA PRYWATNA (tylko Ty, zdalnie z domu)
+#  KLUCZYKI POZNAN MADRA GLOWA - WERSJA PRYWATNA (tylko Ty, zdalnie z domu)
 # ----------------------------------------------------------------------------
 #  Roznica wzgledem wersji wspolnej (run.ps1):
 #    - NIE wystawia narzedzia publicznie zadnym linkiem dla pracownikow,
@@ -39,7 +39,7 @@ if ([string]::IsNullOrWhiteSpace($Password)) {
 }
 
 Write-Host "============================================" -ForegroundColor Magenta
-Write-Host "   REKLAMA GATEWAY - WERSJA PRYWATNA" -ForegroundColor Magenta
+Write-Host "   KLUCZYKI POZNAN MADRA GLOWA - WERSJA PRYWATNA" -ForegroundColor Magenta
 Write-Host "============================================" -ForegroundColor Magenta
 
 # --- 1. Tailscale -----------------------------------------------------------

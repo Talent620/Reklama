@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Reklama Gateway - Autostart (pracownicy)
+title Kluczyki Poznan madra glowa - Autostart (pracownicy)
 echo ============================================
 echo    WLACZAM AUTOSTART - WERSJA DLA PRACOWNIKOW
 echo ============================================

@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - URUCHAMIANIE I NADZOR
+#  KLUCZYKI POZNAN MADRA GLOWA - URUCHAMIANIE I NADZOR
 #  Co robi:
 #    1. uruchamia brame (Node.js),
 #    2. uruchamia tunel Cloudflare (publiczny HTTPS, bez konfiguracji routera),
@@ -106,7 +106,7 @@ Wygenerowano: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 
 # --- Start ------------------------------------------------------------------
 Write-Host "============================================" -ForegroundColor Magenta
-Write-Host "   REKLAMA GATEWAY - uruchamiam" -ForegroundColor Magenta
+Write-Host "   KLUCZYKI POZNAN MADRA GLOWA - uruchamiam" -ForegroundColor Magenta
 Write-Host "============================================" -ForegroundColor Magenta
 Write-Host "Brama lokalna : $LocalTarget"
 Write-Host "Logi          : $LogDir"

@@ -46,7 +46,7 @@ async function main() {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
-<title>Reklama — ${escapeHtml(title)}</title>
+<title>Kluczyki Poznań mądra głowa — ${escapeHtml(title)}</title>
 <style>
   * { box-sizing: border-box; }
   body { margin:0; min-height:100vh; display:grid; place-items:center;

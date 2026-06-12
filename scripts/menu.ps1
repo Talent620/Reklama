@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - GLOWNE MENU
+#  KLUCZYKI POZNAN MADRA GLOWA - GLOWNE MENU
 #  Jedno miejsce, z ktorego wybierasz wszystko. Kazda opcja jest opisana.
 #  Nic nie trzeba pamietac ani wpisywac z palca - tylko numer i Enter.
 # ============================================================================
@@ -32,7 +32,7 @@ function Is-Installed {
 function Show-Menu {
   Clear-Host
   Write-Host "================================================================" -ForegroundColor Magenta
-  Write-Host "                  REKLAMA  -  GLOWNE MENU" -ForegroundColor Magenta
+  Write-Host "                  KLUCZYKI POZNAN MADRA GLOWA  -  GLOWNE MENU" -ForegroundColor Magenta
   Write-Host "================================================================" -ForegroundColor Magenta
   Write-Host ""
   if (-not (Is-Installed)) {

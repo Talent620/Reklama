@@ -49,7 +49,7 @@ const ASSET_RE = /\.(css|js|mjs|png|jpe?g|gif|svg|ico|webp|woff2?|ttf|eot|map)$/
 
 const errors = config.validate();
 if (errors.length) {
-  console.error('\n[Reklama Gateway] Nie moge wystartowac - popraw konfiguracje:\n');
+  console.error('\n[Kluczyki Poznan] Nie moge wystartowac - popraw konfiguracje:\n');
   for (const e of errors) console.error('  - ' + e);
   console.error('');
   process.exit(1);
@@ -187,7 +187,7 @@ if (config.upstreamUrl) {
     },
   });
   app.use(proxyMiddleware);
-  console.log(`[Reklama Gateway] Reverse-proxy -> ${config.upstreamUrl}`);
+  console.log(`[Kluczyki Poznan] Reverse-proxy -> ${config.upstreamUrl}`);
 } else if (config.staticDir) {
   const dir = path.resolve(config.staticDir);
   app.use(express.static(dir));
@@ -195,13 +195,13 @@ if (config.upstreamUrl) {
     BRAND: config.brandName,
     MODE: `Serwuje pliki z: ${dir}`,
   }));
-  console.log(`[Reklama Gateway] Serwuje pliki statyczne z: ${dir}`);
+  console.log(`[Kluczyki Poznan] Serwuje pliki statyczne z: ${dir}`);
 } else {
   app.get('*', (req, res) => render(res, 'landing.html', {
     BRAND: config.brandName,
     MODE: 'Tryb powitalny - ustaw UPSTREAM_URL w pliku .env, aby podlaczyc swoje narzedzie.',
   }));
-  console.log('[Reklama Gateway] Brak UPSTREAM_URL/STATIC_DIR - tryb strony powitalnej.');
+  console.log('[Kluczyki Poznan] Brak UPSTREAM_URL/STATIC_DIR - tryb strony powitalnej.');
 }
 
 // --- Start serwera + obsluga WebSocketow ------------------------------------
@@ -222,7 +222,7 @@ if (proxyMiddleware && proxyMiddleware.upgrade) {
 
 server.listen(config.port, config.host, () => {
   console.log('');
-  console.log(`  ${config.brandName} Gateway dziala`);
+  console.log('  Serwer dziala (Kluczyki Poznan madra glowa)');
   console.log(`  Lokalnie:  http://${config.host}:${config.port}`);
   console.log(`  Dostep:    chroniony wspolnym haslem (bez kont)`);
   console.log('  Na swiat wystawia go tunel Cloudflare (patrz okno cloudflared / share-info.txt).');
@@ -232,7 +232,7 @@ server.listen(config.port, config.host, () => {
 // Czyste zamkniecie.
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, () => {
-    console.log(`\n[Reklama Gateway] Otrzymano ${sig}, zamykam...`);
+    console.log(`\n[Kluczyki Poznan] Otrzymano ${sig}, zamykam...`);
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(0), 3000).unref();
   });

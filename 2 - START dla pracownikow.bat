@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Reklama Gateway - START (pracownicy)
+title Kluczyki Poznan madra glowa - START (pracownicy)
 echo ============================================
 echo    URUCHAMIAM SERWER DLA PRACOWNIKOW
 echo ============================================

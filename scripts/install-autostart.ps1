@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - AUTOSTART Z WINDOWS
+#  KLUCZYKI POZNAN MADRA GLOWA - AUTOSTART Z WINDOWS
 #  Rejestruje zadanie w Harmonogramie zadan, ktore uruchamia wybrana wersje
 #  automatycznie po zalogowaniu - z automatycznym restartem.
 #
@@ -19,15 +19,15 @@ $Root = Split-Path -Parent $PSScriptRoot
 
 if ($Mode -eq 'private') {
   $RunScript = Join-Path $Root "scripts\run-private.ps1"
-  $TaskName  = "ReklamaGatewayPrivate"
+  $TaskName  = "KluczykiPoznanPrivate"
 } else {
   $RunScript = Join-Path $Root "scripts\run.ps1"
-  $TaskName  = "ReklamaGateway"
+  $TaskName  = "KluczykiPoznan"
 }
 Write-Host "Wersja: $Mode  (zadanie: $TaskName)" -ForegroundColor Cyan
 
 Write-Host "============================================" -ForegroundColor Magenta
-Write-Host "   REKLAMA GATEWAY - konfiguracja autostartu" -ForegroundColor Magenta
+Write-Host "   KLUCZYKI POZNAN MADRA GLOWA - konfiguracja autostartu" -ForegroundColor Magenta
 Write-Host "============================================" -ForegroundColor Magenta
 
 if (-not (Test-Path $RunScript)) {
@@ -61,7 +61,7 @@ if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
 
 Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger `
   -Settings $settings -Principal $principal `
-  -Description "Reklama Gateway - autonomiczny serwer udostepniajacy narzedzie pracownikom." | Out-Null
+  -Description "Kluczyki Poznan madra glowa - autonomiczny serwer udostepniajacy narzedzie pracownikom." | Out-Null
 
 Write-Host "`n[OK] Autostart skonfigurowany." -ForegroundColor Green
 Write-Host "Serwer uruchomi sie sam po kazdym zalogowaniu do Windows."

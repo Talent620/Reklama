@@ -75,7 +75,7 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Reklama — raport polaczen</title>
+<title>Kluczyki Poznań mądra głowa — raport polaczen</title>
 <style>
   body { font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; margin:0; background:#f3f4f6; color:#1f2937; }
   header { background:linear-gradient(135deg,#1e3a8a,#6d28d9); color:#fff; padding:26px 28px; }
@@ -98,7 +98,7 @@ const html = `<!doctype html>
 </head>
 <body>
   <header>
-    <h1>Raport polaczen — Reklama Gateway</h1>
+    <h1>Raport polaczen — Kluczyki Poznań mądra głowa</h1>
     <p>Kto i kiedy laczyl sie z narzedziem. Dane anonimowe (adres IP + czas).</p>
   </header>
   <div class="wrap">

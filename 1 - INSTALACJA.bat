@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Reklama Gateway - Instalacja
+title Kluczyki Poznan madra glowa - Instalacja
 echo ============================================
-echo    REKLAMA GATEWAY - INSTALACJA
+echo    KLUCZYKI POZNAN MADRA GLOWA - INSTALACJA
 echo ============================================
 echo.
 echo Za chwile zainstaluje wszystko i wygeneruje Twoje haslo.

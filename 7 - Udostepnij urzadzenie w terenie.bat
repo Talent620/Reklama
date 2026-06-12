@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Reklama Gateway - Udostepnij urzadzenie (OBD) w terenie
+title Kluczyki Poznan madra glowa - Udostepnij urzadzenie (OBD) w terenie
 echo ============================================
 echo    UDOSTEPNIAM URZADZENIE W TERENIE
 echo ============================================

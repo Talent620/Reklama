@@ -1,5 +1,5 @@
 # ============================================================================
-#  REKLAMA GATEWAY - UDOSTEPNIANIE URZADZENIA (np. interfejs OBD2) W TERENIE
+#  KLUCZYKI POZNAN MADRA GLOWA - UDOSTEPNIANIE URZADZENIA (np. interfejs OBD2) W TERENIE
 # ----------------------------------------------------------------------------
 #  Udostepnia surowe urzadzenie sieciowe przez Twoja prywatna siec Tailscale.
 #  W terenie laczysz sie programem diagnostycznym pod adres Tailscale serwera.

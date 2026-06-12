@@ -31,7 +31,7 @@ const config = {
   sessionSecret: process.env.SESSION_SECRET || '',
   sessionTtlHours: int(process.env.SESSION_TTL_HOURS, 12),
 
-  brandName: process.env.BRAND_NAME || 'Reklama',
+  brandName: process.env.BRAND_NAME || 'Kluczyki Poznań mądra głowa',
   trustProxy: bool(process.env.TRUST_PROXY, true),
 };
 

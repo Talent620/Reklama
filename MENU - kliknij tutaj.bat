@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Reklama - Menu glowne
+title Kluczyki Poznan madra glowa - Menu glowne
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\menu.ps1"
 if errorlevel 1 (
   echo.
