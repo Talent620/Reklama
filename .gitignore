@@ -2,6 +2,7 @@
 .env
 share-info.txt
 private-access.txt
+DOSTEP-URZADZENIE.txt
 current-url.txt
 
 # Pliki generowane przy uruchomieniu

@@ -149,6 +149,40 @@ wylacznie Twoje konto i urzadzenia, ktore do niego dodasz.
 
 ---
 
+## Wersja URZADZENIE — udostepnij sprzet (np. interfejs OBD2) w terenie
+
+Gdy chcesz dosiegnac nie strony, lecz **urzadzenia sieciowego** stojacego w domu
+(np. bezprzewodowy interfejs diagnostyczny OBD2), uzyj:
+
+```powershell
+.\scripts\run-device.ps1
+```
+
+albo pliku **`7 - Udostepnij urzadzenie w terenie.bat`**.
+
+Wczesniej ustaw w `.env`:
+
+```ini
+DEVICE_HOST=192.168.0.50   # adres urzadzenia w domowej sieci (lub 127.0.0.1)
+DEVICE_PORT=35000          # port urzadzenia (dla adapterow WiFi OBD czesto 35000)
+```
+
+Jak to dziala: na serwerze startuje **most TCP** (`src/tcp-bridge.js`), ktory
+przekazuje ruch do urzadzenia, a **Tailscale** udostepnia ten port wylacznie
+w Twojej prywatnej sieci. W terenie laczysz sie programem diagnostycznym pod
+adres Tailscale serwera i podany port — tak, jakbys stal obok urzadzenia.
+
+```
+[program diagnostyczny w terenie] --(Tailscale)--> [most TCP na serwerze] --> [OBD2 w domu]
+```
+
+Adres do wpisania w programie zapisuje sie w pliku **`DOSTEP-URZADZENIE.txt`**.
+
+> Uwaga: surowy port TCP wymaga **Tailscale** (nie dziala przez darmowy tunel
+> Cloudflare, ktory obsluguje tylko HTTP/strony).
+
+---
+
 ## Pelna autonomia — start z Windows
 
 Aby serwer uruchamial sie **sam po kazdym zalogowaniu** i sam wstawal po awarii:

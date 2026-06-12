@@ -1,0 +1,186 @@
+##########################################################
+#                                                        #
+#        REKLAMA GATEWAY - PROSTA INSTRUKCJA             #
+#        (czytaj spokojnie, to naprawde proste)          #
+#                                                        #
+##########################################################
+
+
+========================================================
+  1. CO TO W OGOLE ROBI? (w jednym zdaniu)
+========================================================
+
+Ten program sprawia, ze cos, co masz w domu na komputerze
+(narzedzie, program albo urzadzenie jak interfejs OBD2),
+moze byc uzywane ZDALNIE - przez Ciebie w terenie albo przez
+Twojego pracownika - tak, jakbyscie siedzieli przy tym
+komputerze w domu.
+
+I robi to BEZPIECZNIE:
+  - bez grzebania w routerze,
+  - bez wystawiania domu na caly internet,
+  - z haslem, zeby nie wszedl byle kto.
+
+
+========================================================
+  2. JAK TO DZIALA? (obrazek slowami)
+========================================================
+
+Wyobraz sobie bezpieczny, prywatny tunel miedzy Twoim
+domem a telefonem/laptopem w terenie:
+
+   TWOJ DOM (serwer)                 TY / PRACOWNIK W TERENIE
+   +-----------------+               +--------------------+
+   | narzedzie /     |   bezpieczny  |  przegladarka albo |
+   | program / OBD2  |===  tunel  ===|  program na laptop |
+   +-----------------+               +--------------------+
+
+Nikt z zewnatrz nie widzi Twojego domu. Wchodzi tylko ten,
+komu dasz link i haslo (albo kogo dodasz do swojej sieci).
+
+
+========================================================
+  3. SA TRZY TRYBY - WYBIERZ SWOJ
+========================================================
+
+[ A ] DLA PRACOWNIKOW (narzedzie w przegladarce)
+      -> kazdy z linkiem i haslem korzysta przez przegladarke.
+      -> plik:  "2 - START dla pracownikow.bat"
+
+[ B ] TYLKO JA, ZDALNIE Z DOMU (narzedzie w przegladarce)
+      -> dostep ma wylacznie Twoje konto.
+      -> plik:  "3 - START prywatny (tylko ja).bat"
+
+[ C ] URZADZENIE W TERENIE (np. interfejs OBD2)
+      -> laczysz sie programem diagnostycznym z urzadzeniem
+         stojacym w domu/aucie.
+      -> plik:  "7 - Udostepnij urzadzenie w terenie.bat"
+
+
+========================================================
+  4. CHECKLISTA - KROK PO KROKU (odhaczaj!)
+========================================================
+
+PIERWSZE URUCHOMIENIE (robisz raz):
+
+  [ ] 1. Rozpakuj caly folder na komputer w domu (ten,
+         ktory bedzie wlaczony, gdy chcesz korzystac).
+
+  [ ] 2. Kliknij dwa razy:  "1 - INSTALACJA.bat"
+         Poczekaj, az napisze GOTOWE.
+
+  [ ] 3. ZAPISZ haslo, ktore sie pokaze na ekranie.
+         (Bedzie tez w pliku .env)
+
+
+-------- JESLI WYBRALES A lub B (przegladarka) ----------
+
+  [ ] 4. Otworz plik ".env" Notatnikiem i w linii
+         UPSTREAM_URL wpisz adres swojego narzedzia, np.:
+             UPSTREAM_URL=http://127.0.0.1:3000
+         (Nie wiesz jaki? Zostaw puste - zobaczysz strone
+          testowa, zeby sprawdzic, ze dziala.)
+
+  [ ] 5. Kliknij dwa razy odpowiedni plik:
+             A -> "2 - START dla pracownikow.bat"
+             B -> "3 - START prywatny (tylko ja).bat"
+
+  [ ] 6. Otworzy sie strona z LINKIEM, HASLEM i KODEM QR.
+
+  [ ] 7. Wyslij pracownikowi link i haslo
+         (albo pokaz mu kod QR - skanuje telefonem).
+
+  [ ] 8. WAZNE: zostaw czarne okno OTWARTE.
+         Zamkniete okno = serwer wylaczony.
+
+
+-------- JESLI WYBRALES C (urzadzenie OBD2) -------------
+
+  [ ] 4. Sprawdz, pod jakim adresem i portem widac Twoje
+         urzadzenie w domowej sieci (np. adres 192.168.0.50,
+         port 35000 - czesty dla adapterow WiFi OBD).
+
+  [ ] 5. Otworz ".env" Notatnikiem i ustaw:
+             DEVICE_HOST=192.168.0.50
+             DEVICE_PORT=35000
+         (Jesli urzadzenie obsluguje program na tym samym
+          komputerze, zostaw DEVICE_HOST=127.0.0.1.)
+
+  [ ] 6. Kliknij dwa razy:
+             "7 - Udostepnij urzadzenie w terenie.bat"
+         Przy pierwszym razie zaloguj sie swoim kontem
+         (otworzy sie przegladarka).
+
+  [ ] 7. Pokaze sie ADRES i PORT (zapis w pliku
+         DOSTEP-URZADZENIE.txt).
+
+  [ ] 8. W terenie: zainstaluj Tailscale na laptopie/telefonie,
+         zaloguj sie TYM SAMYM kontem, a w programie
+         diagnostycznym wpisz ten adres i port.
+
+
+-------- ZEBY SERWER WSTAWAL SAM (opcjonalnie) ----------
+
+  [ ] Kliknij raz odpowiedni plik:
+        "4 - Wlacz autostart (pracownicy).bat"   (tryb A)
+        "5 - Wlacz autostart (prywatny).bat"     (tryb B)
+      Od teraz wlaczy sie sam po starcie komputera
+      i sam wstanie po awarii.
+
+
+========================================================
+  5. CO WYSLAC PRACOWNIKOWI? (gotowiec)
+========================================================
+
+Skopiuj i wyslij:
+
+  "Czesc! Otworz ten link na telefonie albo komputerze:
+   <TU WKLEJ LINK>
+   Haslo: <TU WKLEJ HASLO>
+   Wpisz haslo i mozesz korzystac. Gotowe!"
+
+Link i haslo masz zawsze w pliku:  share-info.txt
+oraz na stronie:                   UDOSTEPNIJ-PRACOWNIKOM.html
+
+
+========================================================
+  6. PODGLAD: KTO SIE LACZYL
+========================================================
+
+  Kliknij:  "6 - Pokaz kto sie laczyl.bat"
+  Otworzy sie ladny raport: ile bylo wejsc, logowan,
+  z jakich adresow i kiedy ostatnio.
+
+
+========================================================
+  7. CZESTE PYTANIA
+========================================================
+
+P: Czy ktos obcy moze wejsc?
+O: Nie - potrzebuje linka i hasla (tryb A), albo Twojego
+   konta (tryb B i C).
+
+P: Komputer w domu musi byc wlaczony?
+O: Tak. To on udostepnia narzedzie/urzadzenie. Jak go
+   wylaczysz - dostep znika.
+
+P: Pokazalo blad "502 - narzedzie niedostepne".
+O: Twoje narzedzie nie jest uruchomione albo zly adres
+   w UPSTREAM_URL. Wlacz narzedzie i sprawdz adres.
+
+P: Link sie zmienil po restarcie (tryb A).
+O: To normalne dla darmowego tunelu. Chcesz staly adres?
+   Zobacz README.md, sekcja "Staly adres".
+
+P: Gdzie szukac bledow?
+O: W folderze  logs\
+
+
+========================================================
+  WAZNE NA KONIEC
+========================================================
+Jesli udostepniasz platne narzedzie pracownikom, upewnij
+sie, ze jego licencja na to pozwala. Reszte program
+zalatwia za Ciebie.
+
+Powodzenia! :)
