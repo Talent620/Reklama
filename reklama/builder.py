@@ -78,7 +78,9 @@ def _safe_join(root: str, rel_path: str) -> str | None:
         return None
     candidate = os.path.realpath(os.path.join(root, rel_path))
     root_real = os.path.realpath(root)
-    if candidate != root_real and not candidate.startswith(root_real + os.sep):
+    # Odrzuć ścieżki poza korzeniem ORAZ wskazujące na sam korzeń (np. '.', 'a/..'),
+    # bo zapisujemy plik — katalog-korzeń nie jest poprawnym celem.
+    if candidate == root_real or not candidate.startswith(root_real + os.sep):
         return None
     return candidate
 

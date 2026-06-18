@@ -29,6 +29,22 @@ from .models import OpportunityReport
 console = Console()
 
 
+def _dodatnia(wartosc: str) -> int:
+    """Typ argparse: liczba całkowita > 0."""
+    liczba = int(wartosc)
+    if liczba <= 0:
+        raise argparse.ArgumentTypeError(f"oczekiwano liczby > 0, otrzymano {liczba}")
+    return liczba
+
+
+def _nieujemna_cena(wartosc: str) -> float:
+    """Typ argparse: cena ≥ 0."""
+    liczba = float(wartosc)
+    if liczba < 0:
+        raise argparse.ArgumentTypeError(f"cena nie może być ujemna, otrzymano {liczba}")
+    return liczba
+
+
 def _print_report(report: OpportunityReport) -> None:
     console.print(Panel.fit(report.podsumowanie, title=f"Analiza: {report.temat}", border_style="cyan"))
     table = Table(show_lines=True)
@@ -298,20 +314,20 @@ def build_parser() -> argparse.ArgumentParser:
 
     a = sub.add_parser("analyze", help="Znajdź dochodowe nisze")
     a.add_argument("temat", nargs="?", default="", help="Obszar (pusty = najbardziej dochodowe ogólnie)")
-    a.add_argument("--ile", type=int, default=5, help="Ile nisz (domyślnie 5)")
+    a.add_argument("--ile", type=_dodatnia, default=5, help="Ile nisz (domyślnie 5)")
     a.add_argument("--out", default=storage.DEFAULT_OUT, help="Katalog wyjściowy")
     a.set_defaults(func=cmd_analyze)
 
     pr = sub.add_parser("prompt", help="Nisze + prompt dla najlepszej")
     pr.add_argument("temat", nargs="?", default="")
-    pr.add_argument("--ile", type=int, default=5)
+    pr.add_argument("--ile", type=_dodatnia, default=5)
     pr.add_argument("--out", default=storage.DEFAULT_OUT)
     pr.set_defaults(func=cmd_prompt)
 
     pl = sub.add_parser("pipeline", help="Pełny przebieg: analiza + prompty dla top N")
     pl.add_argument("temat", nargs="?", default="")
-    pl.add_argument("--ile", type=int, default=5)
-    pl.add_argument("--top", type=int, default=3, help="Dla ilu najlepszych nisz generować prompty")
+    pl.add_argument("--ile", type=_dodatnia, default=5)
+    pl.add_argument("--top", type=_dodatnia, default=3, help="Dla ilu najlepszych nisz generować prompty")
     pl.add_argument("--build", action="store_true",
                     help="Auto-buduj kod najlepszej aplikacji (model generuje projekt)")
     pl.add_argument("--no-aso", action="store_true",
@@ -333,9 +349,9 @@ def build_parser() -> argparse.ArgumentParser:
     w.set_defaults(func=cmd_wymogi)
 
     k = sub.add_parser("kalkulator", help="Realny szacunek przychodu (benchmarki 2026)")
-    k.add_argument("--installs", type=int, required=True, help="Instalacje miesięcznie")
+    k.add_argument("--installs", type=_dodatnia, required=True, help="Instalacje miesięcznie")
     k.add_argument("--model", default="hybryda", choices=["reklamy", "subskrypcja", "hybryda"])
-    k.add_argument("--cena", type=float, default=4.99, help="Cena subskrypcji USD/mies.")
+    k.add_argument("--cena", type=_nieujemna_cena, default=4.99, help="Cena subskrypcji USD/mies.")
     k.add_argument("--hard-paywall", action="store_true",
                    help="Twardy paywall (konwersja ~10.7%% zamiast ~2.1%%)")
     k.set_defaults(func=cmd_kalkulator)

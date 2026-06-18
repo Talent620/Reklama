@@ -23,6 +23,9 @@ reklama = "reklama.cli:main"
 [tool.setuptools.packages.find]
 include = ["reklama*"]
 
+[tool.setuptools.package-data]
+reklama = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

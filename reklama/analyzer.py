@@ -98,4 +98,9 @@ def analyze_market(
         prompt=_EXTRACT_PROMPT.format(topic=topic_label, research=research_text),
     )
     report.okazje.sort(key=lambda o: o.wynik, reverse=True)
+    if not report.okazje:
+        raise RuntimeError(
+            "Model nie znalazł żadnych nisz dla tego tematu. "
+            "Spróbuj innego/szerszego tematu lub zwiększ --ile."
+        )
     return report

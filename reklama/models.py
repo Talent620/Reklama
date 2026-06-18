@@ -66,6 +66,8 @@ class OpportunityReport(BaseModel):
     utworzono: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def best(self) -> AppOpportunity:
+        if not self.okazje:
+            raise ValueError("Raport nie zawiera żadnych okazji — brak najlepszej niszy.")
         return max(self.okazje, key=lambda o: o.wynik)
 
 

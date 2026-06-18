@@ -56,6 +56,7 @@ def publish_aab(
     status: str = "completed",
     release_notes: str | None = None,
     release_name: str | None = None,
+    notes_language: str | None = None,
     listing: "StoreListing | None" = None,
     listing_language: str = "pl-PL",
     dry_run: bool = False,
@@ -67,7 +68,8 @@ def publish_aab(
         aab_path: ścieżka do podpisanego pliku .aab.
         track: internal | alpha | beta | production.
         status: completed | draft | inProgress | halted (dla rollout: 'inProgress').
-        release_notes: opis zmian (pl-PL).
+        release_notes: opis zmian.
+        notes_language: język notatek wydania (BCP-47); domyślnie = listing_language.
         listing: metadane sklepu (tytuł/opisy) do wgrania w tej samej edycji.
         listing_language: język karty sklepu (BCP-47, np. 'pl-PL').
         dry_run: jeśli True — wgrywa do edycji, ale jej NIE zatwierdza (commit).
@@ -101,7 +103,8 @@ def publish_aab(
         if release_name:
             release["name"] = release_name
         if release_notes:
-            release["releaseNotes"] = [{"language": "pl-PL", "text": release_notes}]
+            lang = notes_language or listing_language
+            release["releaseNotes"] = [{"language": lang, "text": release_notes}]
 
         edits.tracks().update(
             packageName=package_name,
